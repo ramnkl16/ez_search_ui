@@ -659,8 +659,8 @@ class _SearchPageState extends State<SearchPage> {
     var gKeys = fr.keys.toList();
     if (facetsFilter.isNotEmpty) {
       sfgList.add(Container(
-        padding: EdgeInsets.all(4),
-        child: Text(
+        padding: const EdgeInsets.all(4),
+        child: const Text(
           "Selected filter(s)",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
@@ -668,12 +668,12 @@ class _SearchPageState extends State<SearchPage> {
       var facetKeys = facetsFilter.keys.toList();
       for (var i in facetKeys) {
         sfgList.add(Container(
-            padding: EdgeInsets.all(4),
+            padding: const EdgeInsets.all(4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
-                  icon: Icon(Icons.indeterminate_check_box),
+                  icon: const Icon(Icons.indeterminate_check_box),
                   onPressed: () {
                     hasQueryChanged = true;
                     facetsFilter.remove(i);
@@ -688,7 +688,7 @@ class _SearchPageState extends State<SearchPage> {
 
     for (var item in gKeys) {
       if (sfgList.isNotEmpty) {
-        sfgList.add(SizedBox(
+        sfgList.add(const SizedBox(
           height: 8,
         ));
       }
@@ -726,6 +726,11 @@ class _SearchPageState extends State<SearchPage> {
                   (List<DataGridRow> src, List<DataGridRow> dsc) {
                 // //_fgCtrl.selectedIndex = detail.rowColumnIndex.rowIndex - 1;
                 // print("oncellTap src ${src.length}|dsc=${dsc.length}");
+                if (src.length == srcItems.rows.length || src.isEmpty) {
+                  print(
+                      "onSelectionChanging, src=${src.length}, des=${dsc.length} sritems=${srcItems.rows.length} ");
+                  return false;
+                } //avoid select all feature which lead false query because apply and condition
                 for (var row in src) {
                   print(
                       "oncellTap|src ${row.getCells()[0].columnName}|${row.getCells()[0].value}");
