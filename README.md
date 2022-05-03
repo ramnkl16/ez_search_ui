@@ -1,6 +1,8 @@
-# ez_search_ui
+# Ez search UI 
+Explore the indexed document which is built using [bleve](http://blevesearch.com/docs/Home/) and view the data using sql query 
+Source code for rest api is available [here](https://github.com/ramnkl16/ez-search)
 
-A new Flutter project.
+
 
 ## Getting Started
 
