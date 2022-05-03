@@ -3,7 +3,7 @@
 {{- $short := (shortname .Name ) -}}
 //Auto code generated from xml definition {{timenow}}
 //{{.Name}}
-import 'package:ez_search_ui/constants/app_constants.dart';
+import 'package:ez_search_ui/constants/app_constant.dart';
 import 'package:ez_search_ui/modules/{{tolowercase .Name}}/{{tolowercase .Name}}.ds.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/modules/{{tolowercase .Name}}/{{tolowercase .Name}}.model.dart';
@@ -13,9 +13,9 @@ import 'package:ez_search_ui/modules/booking_type/{{tolowercase .Name}}.data.mod
 import 'package:ez_search_ui/modules/common/cubit/base_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ez_search_ui/helpers/global.dart';
+import 'package:ez_search_ui/common/global.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:ez_search_ui/helpers/ui_helpers.dart';
+import 'package:ez_search_ui/helper/UIhelper.dart';
 
 
 
