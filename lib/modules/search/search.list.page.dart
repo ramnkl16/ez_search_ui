@@ -2,6 +2,7 @@
 //Search
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,14 +47,14 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController sinceOnCtrl = TextEditingController();
   final TextEditingController totRecCtrl = TextEditingController();
   bool hasQueryChanged = false;
-  String sinceAgoSelection = "1";
+
   final Map<String, String> sinceAgoDD = {
     "1": "seconds",
     "2": "minutes",
     "3": "hours",
     "4": "days"
   };
-
+  late String sinceAgoSelection;
   //final TextEditingController pgIndexCtrl = TextEditingController();
 
   final fn = FocusNode();
@@ -80,7 +81,7 @@ class _SearchPageState extends State<SearchPage> {
     // qTxtCtrl.text =
     //     "select * from testing where a:b,cc:test sort newsort, sort2 limit 10,20";
     // print("_parsequery ${_parseQuery()}");
-
+    sinceAgoSelection = sinceAgoDD["1"] as String;
     pgSizeCtrl.text = "25";
 
     super.initState();
@@ -534,11 +535,13 @@ class _SearchPageState extends State<SearchPage> {
                 uniqueValues: rptList.map((e) => e.id).toList(),
                 lblTxt: "Query defition",
                 onChanged: (String? val) {
+                  facetsFilter.clear();
                   if (val != null) {
                     for (var item in rptList) {
                       if (item.id == val) {
                         curRptQuery = item;
                         qTxtCtrl.text = item.CustomData;
+
                         fn.requestFocus();
                       }
                     }
@@ -781,6 +784,9 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Row _buildQueryCtrls() {
+    //if (kDebugMode) {
+    print("sinceAgoSelection $sinceAgoSelection");
+    //}
     return Row(children: [
       SizedBox(
         width: 200,
