@@ -238,7 +238,12 @@ class _HomePageState extends State<HomePage> {
                       AutoRouter.of(context).replaceNamed('user');
                     } else if (index == 1) {
                       AutoRouter.of(context).replaceNamed('query');
+                    } else if (index == 2) {
+                      AutoRouter.of(context).replaceNamed('indexes');
+                    } else if (index == 3) {
+                      AutoRouter.of(context).replaceNamed('fields');
                     }
+
                     // Navigator.pop(context);
                   },
                 );
