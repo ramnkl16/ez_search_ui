@@ -5,6 +5,6 @@ import 'package:ez_search_ui/modules/indexfields/indexfields.model.dart';
 class IndexFieldListCubit extends BaseCubit<IndexFieldModel> {
   IndexFieldListCubit() : super(IndexFieldModel.fromMap, IndexFieldModel.toMap);
   void getAll() {
-    super.getAllListData(ApiPaths.userSearch);
+    super.getAllListData(ApiPaths.ListIndexFields);
   }
 }

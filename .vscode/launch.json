@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "search-explorer",
+            "name": "ez_search_ui",
             "request": "launch",
             "type": "dart",
             "args": [

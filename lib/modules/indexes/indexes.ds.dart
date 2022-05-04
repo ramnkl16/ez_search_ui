@@ -1,18 +1,15 @@
 //Auto code generated from xml definition 2022-05-03 19:54:23.854093 -0400 EDT
 //Indexes
 
-import 'package:ez_search_ui/modules/indexes/indexes.model.dart';
-
-
 /// Packages import
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class IndexesDataGridSource extends DataGridSource {
-  late final List<IndexModel> ds;
+  late final List<String> ds;
 
   /// Creates the Indexes data source class with required details.
-  IndexesDataGridSource(List<IndexModel> list) {
+  IndexesDataGridSource(List<String> list) {
     ds = list;
     buildDataGridRows(list);
   }
@@ -21,11 +18,11 @@ class IndexesDataGridSource extends DataGridSource {
   static DateTime maxDateTime = DateTime.utc(275760, 09, 13);
 
   /// Building DataGridRows
-  void buildDataGridRows(List<IndexModel> list) {
+  void buildDataGridRows(List<String> list) {
     //print("side build data grid rows ${list.length}");
-    _dataGridRows = list.map<DataGridRow>((IndexModel s) {
-      return DataGridRow(cells: <DataGridCell>[ 
-       DataGridCell<String>(columnName: 'name', value: s.name),
+    _dataGridRows = list.map<DataGridRow>((String s) {
+      return DataGridRow(cells: <DataGridCell>[
+        DataGridCell<String>(columnName: 'name', value: s),
       ]);
     }).toList();
   }
@@ -37,12 +34,11 @@ class IndexesDataGridSource extends DataGridSource {
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     return DataGridRowAdapter(cells: <Widget>[
-     
-    Container(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        row.getCells()[0].value.toString(),
-        softWrap: true,
+      Container(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          row.getCells()[0].value.toString(),
+          softWrap: true,
         ),
       ),
     ]);

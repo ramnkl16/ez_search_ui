@@ -22,14 +22,14 @@ class IndexesPage extends StatefulWidget {
 class _IndexesPageState extends State<IndexesPage> {
   late bool isWebOrDesktop;
   final DataGridController _dgController = DataGridController();
-  List<IndexModel> list = <IndexModel>[];
+  List<String> list = <String>[];
 
   /// Determine to decide whether the device in landscape or in portrait.
   late bool isLandscapeInMobileView;
 
   @override
   void initState() {
-    BlocProvider.of<IndexListCubit>(context).getAll();
+    BlocProvider.of<IndexListCubit>(context).getIndexes();
 
     isWebOrDesktop = Global.isWeb || Global.isDesktop;
     _dgController.selectedIndex = 0;
@@ -42,19 +42,19 @@ class _IndexesPageState extends State<IndexesPage> {
       body: Column(
         children: [
           _buildMenu(),
-          BlocBuilder<IndexListCubit, BaseState>(
+          BlocBuilder<IndexListCubit, IndexState>(
             builder: (context, state) {
               print(state.runtimeType);
               if (state is BaseLoading) {
                 return const CircularProgressIndicator();
-              } else if (state is BaseFailure) {
+              } else if (state is IndexFailure) {
                 return Center(
                   child: Text(state.errorMsg),
                 );
-              } else if (state is BaseListSuccess<IndexModel>) {
+              } else if (state is IndexSuccess) {
                 list = state.list;
                 return _buildIndexesGrid();
-              } else if (state is BaseEmpty) {
+              } else if (state is IndexEmpty) {
                 return Text("No record found, Please create a Indexes");
               }
               return const Text("Indexes has unknown state");
@@ -99,7 +99,7 @@ class _IndexesPageState extends State<IndexesPage> {
             label: const Text(MenuConstants.newVal)),
         TextButton.icon(
             onPressed: () {
-              var sn = list[_dgController.selectedIndex].name;
+              var sn = list[_dgController.selectedIndex];
               var rest = showDialog<String>(
                 context: context,
                 builder: (BuildContext context) => AlertDialog(
