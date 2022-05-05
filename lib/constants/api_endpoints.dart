@@ -7,10 +7,10 @@ class ApiPaths {
   static const String userMenuSearch = '/api/userMenus/search';
   static const String userSearch = '/api/users/search';
   static const String ListIndexes = '/api/getindexes';
-  static const String ListIndexFields = '/api/getfields?indexName={indexName}';
+  static const String ListIndexFields = '/api/getfields';
   static const String rptQuerySearch = '/api/widgetmetas/search';
   static const String rptQuerySave = '/api/widgetmeta';
   static const String getIndexes = '/api/getindexes';
-  static const String getIndexFields = '/api/getfields?indexName=?';
+  static const String getIndexFields = '/api/getfields';
   static const String getSearch = '/api/search';
 }

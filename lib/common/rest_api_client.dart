@@ -9,13 +9,11 @@ import 'package:ez_search_ui/helper/RepoHelper.dart';
 
 class RestClient {
   //fetching token directly from shared resource
-  static Future<http.Response> exeReq(
-      RequestType method, String endPoint, dynamic body) async {
+  static Future<http.Response> exeReq(RequestType method, String endPoint,
+      [dynamic body, Map<String, String>? queryParams]) async {
     print("exereq $endPoint");
-    Uri uri = Uri.http(
-      ApiPaths.baseURL,
-      endPoint,
-    );
+    Uri uri = Uri.http(ApiPaths.baseURL, endPoint, queryParams);
+
     //String token, nsId = "";
     var token = await RepoHelper.getValue(ApiValues.authTokenHeader);
     var nsId = await RepoHelper.getValue(SharedPrefKeys.nsID);

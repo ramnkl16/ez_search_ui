@@ -1,6 +1,6 @@
 //Auto code generated from xml definition 2022-05-03 19:54:23.853091 -0400 EDT
 //Indexes
-import 'package:ez_search_ui/common/base_cubit.dart';
+
 import 'package:ez_search_ui/constants/app_constant.dart';
 import 'package:ez_search_ui/modules/indexes/indexes.cubit.dart';
 import 'package:ez_search_ui/modules/indexes/indexes.ds.dart';
@@ -45,7 +45,7 @@ class _IndexesPageState extends State<IndexesPage> {
           BlocBuilder<IndexListCubit, IndexState>(
             builder: (context, state) {
               print(state.runtimeType);
-              if (state is BaseLoading) {
+              if (state is IndexLoading) {
                 return const CircularProgressIndicator();
               } else if (state is IndexFailure) {
                 return Center(

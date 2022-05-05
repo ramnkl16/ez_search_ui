@@ -13,9 +13,10 @@ import 'package:http/http.dart' as http;
 
 class IndexRepo {
   final RepoHelper repositoryHelper = RepoHelper();
-  Future<List<String>> getIndexes() async {
+  Future<List<String>> getIndexes(String apiEndPoint,
+      [String? indexName]) async {
     //req = '{"q":"$req"}';
-    //print("SearchCubit|getAllSearchs $req");
+    print("indexRepo| $apiEndPoint");
     var token = await RepoHelper.getValue(ApiValues.authTokenHeader);
     var nsId = await RepoHelper.getValue(SharedPrefKeys.nsID);
     print("getsearchData| token $token nsId $nsId");
@@ -23,8 +24,13 @@ class IndexRepo {
       Global.pushLoginUnAuth();
       throw UnauthorizedException(message: AppValues.unAuthCubitMsg);
     }
+    var qParams = <String, String>{};
+    if (indexName != null) {
+      qParams["indexName"] = indexName;
+    }
     http.Response response =
-        await RestClient.exeReq(RequestType.GET, ApiPaths.ListIndexes, null);
+        await RestClient.exeReq(RequestType.GET, apiEndPoint, null, qParams);
+    print("indexrepo ${response.statusCode} body:${response.body}");
     List<String> list = <String>[];
     if (response.statusCode >= 200 && response.statusCode <= 299) {
       var resBody = jsonDecode(response.body);

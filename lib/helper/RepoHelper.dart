@@ -9,7 +9,7 @@ import '../exceptions/custom_exception.model.dart';
 
 class RepoHelper {
   void handleAPIErrors(http.Response response) {
-    print("loginResponse.statusCode ${response.statusCode}");
+    print("ezsearch.statusCode ${response.statusCode}");
     switch (response.statusCode) {
       case HttpStatus.badRequest:
         CustomAPIError errResp = CustomAPIError.fromJson(response.body);

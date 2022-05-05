@@ -2,7 +2,8 @@
 //indexFields
 import 'package:ez_search_ui/common/base_cubit.dart';
 import 'package:ez_search_ui/constants/app_constant.dart';
-import 'package:ez_search_ui/modules/indexfields/indexfields.cubit.dart';
+import 'package:ez_search_ui/modules/indexes/indexes.cubit.dart';
+import 'package:ez_search_ui/modules/indexfields/indexesFields.cubit.dart';
 import 'package:ez_search_ui/modules/indexfields/indexfields.ds.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/modules/indexfields/indexfields.model.dart';
@@ -22,14 +23,15 @@ class IndexFieldsPage extends StatefulWidget {
 class _indexFieldsPageState extends State<IndexFieldsPage> {
   late bool isWebOrDesktop;
   final DataGridController _dgController = DataGridController();
-  List<IndexFieldModel> list = <IndexFieldModel>[];
+  List<String> list = [];
 
   /// Determine to decide whether the device in landscape or in portrait.
   late bool isLandscapeInMobileView;
 
   @override
   void initState() {
-    BlocProvider.of<IndexFieldListCubit>(context).getAll();
+    BlocProvider.of<IndexFieldListCubit>(context)
+        .getIndexeFields('data/b2b.bleve');
 
     isWebOrDesktop = Global.isWeb || Global.isDesktop;
     _dgController.selectedIndex = 0;
@@ -42,17 +44,17 @@ class _indexFieldsPageState extends State<IndexFieldsPage> {
       body: Column(
         children: [
           _buildMenu(),
-          BlocBuilder<IndexFieldListCubit, BaseState>(
+          BlocBuilder<IndexFieldListCubit, IndexState>(
             builder: (context, state) {
               print(state.runtimeType);
-              if (state is BaseLoading) {
+              if (state is IndexLoading) {
                 return const CircularProgressIndicator();
-              } else if (state is BaseFailure) {
+              } else if (state is IndexFailure) {
                 return Center(
                   child: Text(state.errorMsg),
                 );
-              } else if (state is BaseListSuccess<IndexFieldListCubit>) {
-                list = state.list.cast<IndexFieldModel>();
+              } else if (state is IndexSuccess) {
+                list = state.list;
                 return _buildindexFieldsGrid();
               } else if (state is BaseEmpty) {
                 return Text("No record found, Please create a indexFields");
@@ -99,7 +101,7 @@ class _indexFieldsPageState extends State<IndexFieldsPage> {
             label: const Text(MenuConstants.newVal)),
         TextButton.icon(
             onPressed: () {
-              var sn = list[_dgController.selectedIndex].name;
+              var sn = list[_dgController.selectedIndex];
               var rest = showDialog<String>(
                 context: context,
                 builder: (BuildContext context) => AlertDialog(

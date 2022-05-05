@@ -22,7 +22,7 @@ class IndexesDataGridSource extends DataGridSource {
     //print("side build data grid rows ${list.length}");
     _dataGridRows = list.map<DataGridRow>((String s) {
       return DataGridRow(cells: <DataGridCell>[
-        DataGridCell<String>(columnName: 'name', value: s),
+        DataGridCell<String>(columnName: 'Index', value: s),
       ]);
     }).toList();
   }
@@ -36,9 +36,8 @@ class IndexesDataGridSource extends DataGridSource {
     return DataGridRowAdapter(cells: <Widget>[
       Container(
         alignment: Alignment.centerLeft,
-        child: Text(
+        child: SelectableText(
           row.getCells()[0].value.toString(),
-          softWrap: true,
         ),
       ),
     ]);
