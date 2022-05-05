@@ -3,7 +3,7 @@
 {{- $short := (shortname .Name ) -}}
 //Auto code generated from xml definition {{timenow}}
 //{{.Name}}
-import 'package:ez_search_ui/constants/app_constants.dart';
+import 'package:ez_search_ui/constants/app_constant.dart';
 import 'package:ez_search_ui/modules/{{tolowercase .Name}}/{{tolowercase .Name}}.ds.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/modules/{{tolowercase .Name}}/{{tolowercase .Name}}.model.dart';
@@ -13,9 +13,9 @@ import 'package:ez_search_ui/modules/booking_type/{{tolowercase .Name}}.data.mod
 import 'package:ez_search_ui/modules/common/cubit/base_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ez_search_ui/helpers/global.dart';
+import 'package:ez_search_ui/common/global.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:ez_search_ui/helpers/ui_helpers.dart';
+import 'package:ez_search_ui/helper/UIhelper.dart';
 
 
 
@@ -49,7 +49,7 @@ class _{{.Name}}PageState extends State<{{.Name}}Page> {
     return Scaffold(
       body: Column(
         children: [
-         
+          _buildMenu(),
           BlocBuilder<{{.Name}}ListCubit, BaseState>(
             builder: (context, state) {
               print(state.runtimeType);
@@ -73,7 +73,67 @@ class _{{.Name}}PageState extends State<{{.Name}}Page> {
     );
   }
 
-  
+  Widget _buildMenu() {
+    return Row(
+      children: [
+        TextButton.icon(
+            onPressed: () async {
+              if (_dgController.selectedIndex == -1)
+                _dgController.selectedIndex = 0;
+              var r =
+                  await showEditPageDialog(list[_dgController.selectedIndex]);
+              setState(() {});
+            },
+            icon: const Icon(Icons.edit),
+            label: const Text(MenuConstants.edit)),
+        TextButton.icon(
+            onPressed: () async {
+              var m = createNewModel();
+              
+              var r = await showEditPageDialog(m);
+              print(m);
+              if (r != null) {
+                list.add(m);
+                if (BlocProvider.of<{{$entityName}}ListCubit>(context).state
+                    is BaseEmpty) {
+                  BlocProvider.of<{{$entityName}}ListCubit>(context)
+                      .emitInitialSuccess(list);
+                } else {
+                  setState(() {});
+                }
+              }
+            },
+            icon: const Icon(Icons.add),
+            label: const Text(MenuConstants.newVal)),
+        TextButton.icon(
+            onPressed: () {
+              var sn = list[_dgController.selectedIndex].name;
+              var rest = showDialog<String>(
+                context: context,
+                builder: (BuildContext context) => AlertDialog(
+                  title: Text("Delete {{.Name}} $sn"),
+                  content:
+                      const Text('After deletion you can not retrive it back!'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, 'Cancel'),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, 'OK'),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+              //perform delete api and remove item from the list
+            },
+            icon: const Icon(Icons.delete),
+            label: const Text(MenuConstants.deleteVal))
+      ],
+    );
+  }
+
   Future<dynamic> showEditPageDialog({{.ModelName}} model) {
     return showDialog(
         context: context,
