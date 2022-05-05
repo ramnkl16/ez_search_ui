@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ez_search_ui/modules/search/facet.ds.dart';
 import 'package:ez_search_ui/modules/search/search.ds.dart';
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 import 'package:ez_search_ui/common/base_cubit.dart';
@@ -20,6 +21,10 @@ import 'package:ez_search_ui/modules/rptquery/rptquery.cubit.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.model.dart';
 import 'package:ez_search_ui/modules/search/SearchResult.dart';
 import 'package:ez_search_ui/modules/search/search.cubit.dart';
+import 'package:ez_search_ui/modules/search/search.repo.dart';
+import 'dart:convert';
+import 'package:csv/csv.dart';
+import 'package:universal_html/html.dart' as html;
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -160,18 +165,159 @@ class _SearchPageState extends State<SearchPage> {
                       onPressed: () {
                         _showMaterialDialog();
                       },
-                      icon: Icon(Icons.save_as_outlined),
+                      icon: Icon(Icons.save_alt_sharp),
                       tooltip: "Save as"),
                   if (state is BaseLoading) CircularProgressIndicator(),
                   if (state is RptQueryFailure) Text(state.errorMsg),
                 ],
               );
-            })
+            }),
+            BlocBuilder<RptQuerySaveCubit, RptQueryState>(
+                builder: (context, state) {
+              return Column(
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        exportToCsvDialog();
+                      },
+                      icon: Icon(Icons.import_export_outlined),
+                      tooltip: "Csv export"),
+                  if (state is BaseLoading) CircularProgressIndicator(),
+                  if (state is RptQueryFailure) Text(state.errorMsg),
+                ],
+              );
+            }),
           ]),
           Expanded(child: _sfGridBuildBlocBuilder()),
         ],
       );
     }));
+  }
+
+  void exportToCsvDialog() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Please provide start and end page index'),
+            content: buildStartandEndPage(),
+            actions: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 10, right: 10, top: 10, bottom: 10),
+                child: TextButton(
+                    onPressed: () {
+                      _dismissDialog(context);
+                    },
+                    child: Text('Cancel')),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 10, right: 10, top: 10, bottom: 10),
+                child: TextButton(
+                  onPressed: () {
+                    generateCSV();
+                    _dismissDialog(context);
+                  },
+                  child: Text('Export'),
+                ),
+              ),
+            ],
+          );
+        });
+  }
+
+  Row buildStartandEndPage() {
+    return Row(
+      children: [
+        Expanded(
+          child: Padding(
+            padding:
+                const EdgeInsets.only(left: 10, right: 20, top: 10, bottom: 10),
+            child: TextField(
+              onChanged: (val) {},
+              decoration: InputDecoration(labelText: "Start Page"),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding:
+                const EdgeInsets.only(left: 20, right: 10, top: 10, bottom: 10),
+            child: TextField(
+              controller: pgIndexCtrl,
+              //keyboardType: TextInputType.multiline,
+              //textInputAction: TextInputAction.none,
+              onChanged: (val) {},
+              decoration: InputDecoration(
+                  labelText: "End Page [${_getMaxPagination()}]"),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void generateCSV() async {
+    SearchRepo repo = SearchRepo();
+    //pgIndexCtrl.text =
+    _constructQueryFromCtrls();
+
+    if (qTxtCtrl.text.isEmpty) {
+      //TODO show nice way
+      _showSnackBarMessage("Please select a query defintion.");
+      return;
+    }
+    try {
+      result = await repo.getSearchData(qTxtCtrl.text);
+    } on Exception catch (e) {
+      _showSnackBarMessage("Failed $e");
+      print("Failed $e");
+      return;
+    }
+
+    List<String> rowHeader = [];
+    for (var fieldName in result!.fields!) {
+      rowHeader.add(fieldName);
+    }
+    List<List<dynamic>> rows = [];
+    //First add entire row header into our first row
+    rows.add(rowHeader);
+    //Now lets add 5 data rows
+
+    for (var row in result!.resultRow!) {
+      List<dynamic> dataRow = [];
+      int colIndex = 0;
+      for (var key in rowHeader) {
+        dataRow.add('');
+        if (row[key] != null) {
+          dataRow[colIndex] = row[key];
+        }
+        colIndex++;
+      }
+      rows.add(dataRow);
+    }
+    String csv = const ListToCsvConverter().convert(rows);
+//this csv variable holds entire csv data
+//Now Convert or encode this csv string into utf8
+    final bytes = utf8.encode(csv);
+//NOTE THAT HERE WE USED HTML PACKAGE
+    final blob = html.Blob([bytes]);
+//It will create downloadable object
+    final url = html.Url.createObjectUrlFromBlob(blob);
+//It will create anchor to download the file
+    final DateFormat format = DateFormat("yyy-MM-dd-hh-mm-ss");
+    final String formated = format.format(DateTime.now());
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = 'export_$formated.csv';
+//finally add the csv anchor to body
+    html.document.body!.children.add(anchor);
+// Cause download by calling this function
+    anchor.click();
+//revoke the object
+    html.Url.revokeObjectUrl(url);
   }
 
   RawKeyboardListener _buildqueryEditTb() {
@@ -447,7 +593,9 @@ class _SearchPageState extends State<SearchPage> {
     if (qParsedMap["sor"] != null) {
       sb.write("sort ${qParsedMap["sor"]} ");
     }
-    if (qParsedMap["lim"] != null) {
+    // if (qParsedMap["lim"] != null) {
+    print("start idnex ${pgIndexCtrl.text}");
+    if (pgIndexCtrl.text.isNotEmpty) {
       sb.write("limit ${_getStartIndex()},${pgSizeCtrl.text} ");
     }
     if (qParsedMap["fac"] != null) {
@@ -502,7 +650,13 @@ class _SearchPageState extends State<SearchPage> {
     return BlocBuilder<SearchCubit, SearchState>(
       builder: (context, state) {
         if (state is SearchLoading) {
-          return const CircularProgressIndicator();
+          return SizedBox(
+              height: 16,
+              width: 16,
+              child: Center(
+                  child: const CircularProgressIndicator(
+                strokeWidth: 1.5,
+              )));
         } else if (state is SearchFailure) {
           return Center(
             child: Text(state.errorMsg),
@@ -541,7 +695,6 @@ class _SearchPageState extends State<SearchPage> {
                       if (item.id == val) {
                         curRptQuery = item;
                         qTxtCtrl.text = item.CustomData;
-
                         fn.requestFocus();
                       }
                     }
@@ -559,8 +712,9 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   int _getMaxPagination() {
-    int maxCount =
-        (result!.total / int.parse(pgSizeCtrl.text)).floorToDouble().toInt();
+    int maxCount = 0;
+    if (result != null)
+      (result!.total / int.parse(pgSizeCtrl.text)).floorToDouble().toInt();
     return maxCount;
   }
 
@@ -583,27 +737,25 @@ class _SearchPageState extends State<SearchPage> {
                   border: Border(left: BorderSide(color: Colors.black))),
               child: Column(children: [
                 _buildQueryCtrls(),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppValues.sfGridPadding),
-                    child: SfDataGrid(
-                        allowSorting: true,
-                        isScrollbarAlwaysShown: true,
-                        columnWidthMode: ColumnWidthMode.auto,
-                        source:
-                            SearchDatagridSource(curRptQuery, context, result!),
-                        gridLinesVisibility: GridLinesVisibility.both,
-                        headerGridLinesVisibility: GridLinesVisibility.vertical,
-                        rowHeight: 30,
-                        headerRowHeight: 35,
-                        selectionMode: SelectionMode.single,
-                        allowPullToRefresh: true,
-                        //navigationMode: GridNavigationMode.cell,
-                        controller: _dgController,
-                        // onSelectionChanging: (addedRows, removedRows) {
-                        // },
-                        columns: _buildGirdColumn),
-                  ),
+                Padding(
+                  padding: EdgeInsets.all(AppValues.sfGridPadding),
+                  child: SfDataGrid(
+                      allowSorting: true,
+                      isScrollbarAlwaysShown: true,
+                      columnWidthMode: ColumnWidthMode.auto,
+                      source:
+                          SearchDatagridSource(curRptQuery, context, result!),
+                      gridLinesVisibility: GridLinesVisibility.both,
+                      headerGridLinesVisibility: GridLinesVisibility.vertical,
+                      rowHeight: 30,
+                      headerRowHeight: 35,
+                      selectionMode: SelectionMode.single,
+                      allowPullToRefresh: true,
+                      //navigationMode: GridNavigationMode.cell,
+                      controller: _dgController,
+                      // onSelectionChanging: (addedRows, removedRows) {
+                      // },
+                      columns: _buildGirdColumn),
                 ),
               ]),
             ),
@@ -704,59 +856,57 @@ class _SearchPageState extends State<SearchPage> {
                   right: BorderSide(color: Colors.black),
                   top: BorderSide(color: Colors.black),
                   bottom: BorderSide(color: Colors.black))),
-          child: SfDataGrid(
-              //allowSorting: true,
+          child: Padding(
+            padding: AppValues.formFieldPadding,
+            child: SfDataGrid(
+                //allowSorting: true,
 
-              isScrollbarAlwaysShown: true,
-              columnWidthMode: ColumnWidthMode.auto,
-              source: srcItems,
-              gridLinesVisibility: GridLinesVisibility.both,
-              headerGridLinesVisibility: GridLinesVisibility.both,
-              rowHeight: 40,
-              headerRowHeight: 45,
-              showCheckboxColumn: true,
-              selectionMode: SelectionMode.multiple,
+                isScrollbarAlwaysShown: true,
+                columnWidthMode: ColumnWidthMode.auto,
+                source: srcItems,
+                gridLinesVisibility: GridLinesVisibility.both,
+                headerGridLinesVisibility: GridLinesVisibility.both,
+                rowHeight: 40,
+                headerRowHeight: 45,
+                showCheckboxColumn: true,
+                selectionMode: SelectionMode.multiple,
 
-              //allowPullToRefresh: true,
-              //navigationMode: GridNavigationMode.cell,
-              controller: _fgCtrl,
-              // onSelectionChanging: (addedRows, removedRows) {
-              // },
-              onSelectionChanging:
-                  (List<DataGridRow> src, List<DataGridRow> dsc) {
-                // //_fgCtrl.selectedIndex = detail.rowColumnIndex.rowIndex - 1;
-                // print("oncellTap src ${src.length}|dsc=${dsc.length}");
-                if (src.length == srcItems.rows.length || src.isEmpty) {
-                  print(
-                      "onSelectionChanging, src=${src.length}, des=${dsc.length} sritems=${srcItems.rows.length} ");
-                  return false;
-                } //avoid select all feature which lead false query because apply and condition
-                for (var row in src) {
-                  print(
-                      "oncellTap|src ${row.getCells()[0].columnName}|${row.getCells()[0].value}");
-                  var cell = row.getCells()[0];
-                  var key =
-                      '${cell.columnName}:${(cell.value as String).split("(")[0]}';
-                  if (facetsFilter.keys.contains(key)) {
-                    facetsFilter.remove(key);
-                  } else {
-                    facetsFilter[key] = true;
+                //allowPullToRefresh: true,
+                //navigationMode: GridNavigationMode.cell,
+                controller: _fgCtrl,
+                // onSelectionChanging: (addedRows, removedRows) {
+                // },
+                onSelectionChanging:
+                    (List<DataGridRow> src, List<DataGridRow> dsc) {
+                  // //_fgCtrl.selectedIndex = detail.rowColumnIndex.rowIndex - 1;
+                  // print("oncellTap src ${src.length}|dsc=${dsc.length}");
+                  for (var row in src) {
+                    print(
+                        "oncellTap|src ${row.getCells()[0].columnName}|${row.getCells()[0].value}");
+                    var cell = row.getCells()[0];
+                    var key =
+                        '${cell.columnName}:${(cell.value as String).split("(")[0]}';
+                    if (facetsFilter.keys.contains(key)) {
+                      facetsFilter.remove(key);
+                    } else {
+                      facetsFilter[key] = true;
+                    }
                   }
-                }
-                for (var row in dsc) {
-                  var cell = row.getCells()[0];
-                  var key =
-                      '${cell.columnName}:${(cell.value as String).split("(")[0]}';
-                  print("oncellTap|src $key");
-                  facetsFilter.remove(key);
-                }
-                hasQueryChanged = true;
-                _execSearchQuery();
-                return true;
-              },
-              columns: [
-                UIHelper.buildGridColumnFacets(label: item, columnName: item)
-              ]));
+                  for (var row in dsc) {
+                    var cell = row.getCells()[0];
+                    var key =
+                        '${cell.columnName}:${(cell.value as String).split("(")[0]}';
+                    print("oncellTap|src $key");
+                    facetsFilter.remove(key);
+                  }
+                  hasQueryChanged = true;
+                  _execSearchQuery();
+                  return true;
+                },
+                columns: [
+                  UIHelper.buildGridColumnFacets(label: item, columnName: item)
+                ]),
+          ));
       for (var fItem in facetsFilter.keys) {}
       sfgList.add(sf);
       facetDGctrls[item] = _fgCtrl;
@@ -793,10 +943,9 @@ class _SearchPageState extends State<SearchPage> {
     print("sinceAgoSelection $sinceAgoSelection");
     //}
     return Row(children: [
-      SizedBox(
-        width: 200,
+      Expanded(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: AppValues.formFieldPadding,
           child: TextField(
             controller: pgIndexCtrl,
             // keyboardType: TextInputType.multiline,
@@ -815,10 +964,9 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
       ),
-      SizedBox(
-        width: 200,
+      Expanded(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: AppValues.formFieldPadding,
           child: TextFormField(
             controller: pgSizeCtrl,
             keyboardType: TextInputType.multiline,
@@ -837,24 +985,25 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
       ),
-      SizedBox(
-        width: 200,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextFormField(
-            controller: totRecCtrl,
-            keyboardType: TextInputType.multiline,
-            textInputAction: TextInputAction.none,
-            readOnly: true,
-            decoration: InputDecoration(labelText: "Total record"),
-            //readOnly: true,
+      Expanded(
+        child: SizedBox(
+          width: 200,
+          child: Padding(
+            padding: AppValues.formFieldPadding,
+            child: TextFormField(
+              controller: totRecCtrl,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.none,
+              readOnly: true,
+              decoration: InputDecoration(labelText: "Total record"),
+              //readOnly: true,
+            ),
           ),
         ),
       ),
-      SizedBox(
-        width: 200,
+      Expanded(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: AppValues.formFieldPadding,
           child: TextFormField(
             controller: sinceOnCtrl,
             keyboardType: TextInputType.multiline,
@@ -873,10 +1022,9 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
       ),
-      SizedBox(
-        width: 200,
+      Expanded(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: AppValues.formFieldPadding,
           child: TextFormField(
             controller: sincetimeCtrl,
             keyboardType: TextInputType.multiline,
@@ -895,21 +1043,26 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
       ),
-      CommonDropDown(
-          k: "sinceAgo",
-          w: 200,
-          uniqueValues: sinceAgoDD.values.toList(),
-          ddDataSourceNames: sinceAgoDD.values.toList(),
-          lblTxt: "Since ago",
-          selectedVal: sinceAgoSelection,
-          onChanged: (String? val) {
-            if (val != null) {
-              sinceAgoSelection = val;
-              hasQueryChanged = true;
-              //_constructQueryFromCtrls();
+      Expanded(
+        child: Padding(
+          padding: AppValues.formFieldPadding,
+          child: CommonDropDown(
+              k: "sinceAgo",
+              w: 200,
+              uniqueValues: sinceAgoDD.values.toList(),
+              ddDataSourceNames: sinceAgoDD.values.toList(),
+              lblTxt: "Since ago",
+              selectedVal: sinceAgoSelection,
+              onChanged: (String? val) {
+                if (val != null) {
+                  sinceAgoSelection = val;
+                  hasQueryChanged = true;
+                  //_constructQueryFromCtrls();
 
-            }
-          }),
+                }
+              }),
+        ),
+      ),
     ]);
   }
 
