@@ -1,36 +1,35 @@
-//Auto code generated from xml definition 2022-04-28 10:39:36.1512244 -0400 EDT
-//User
+//Auto code generated from xml definition 2022-05-03 19:54:23.853091 -0400 EDT
+//Indexes
 
-import 'package:ez_search_ui/common/base_cubit.dart';
-import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/constants/app_constant.dart';
-import 'package:ez_search_ui/helper/UIHelper.dart';
-import 'package:ez_search_ui/modules/user/user.ds.dart';
+import 'package:ez_search_ui/modules/indexes/indexes.cubit.dart';
+import 'package:ez_search_ui/modules/indexes/indexes.ds.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
-import 'package:ez_search_ui/modules/user/user.model.dart';
-import 'package:ez_search_ui/modules/user/user.cubit.dart';
+import 'package:ez_search_ui/modules/indexes/indexes.model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ez_search_ui/common/global.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:ez_search_ui/helper/UIhelper.dart';
 
-class UserPage extends StatefulWidget {
-  const UserPage({Key? key}) : super(key: key);
+class IndexesPage extends StatefulWidget {
+  const IndexesPage({Key? key}) : super(key: key);
 
   @override
-  _UserPageState createState() => _UserPageState();
+  _IndexesPageState createState() => _IndexesPageState();
 }
 
-class _UserPageState extends State<UserPage> {
+class _IndexesPageState extends State<IndexesPage> {
   late bool isWebOrDesktop;
   final DataGridController _dgController = DataGridController();
-  List<UserModel> list = <UserModel>[];
+  List<String> list = <String>[];
 
   /// Determine to decide whether the device in landscape or in portrait.
   late bool isLandscapeInMobileView;
 
   @override
   void initState() {
-    BlocProvider.of<UserListCubit>(context).getAll();
+    BlocProvider.of<IndexListCubit>(context).getIndexes();
 
     isWebOrDesktop = Global.isWeb || Global.isDesktop;
     _dgController.selectedIndex = 0;
@@ -43,22 +42,22 @@ class _UserPageState extends State<UserPage> {
       body: Column(
         children: [
           _buildMenu(),
-          BlocBuilder<UserListCubit, BaseState>(
+          BlocBuilder<IndexListCubit, IndexState>(
             builder: (context, state) {
               print(state.runtimeType);
-              if (state is BaseLoading) {
+              if (state is IndexLoading) {
                 return const CircularProgressIndicator();
-              } else if (state is BaseFailure) {
+              } else if (state is IndexFailure) {
                 return Center(
                   child: Text(state.errorMsg),
                 );
-              } else if (state is BaseListSuccess<UserModel>) {
+              } else if (state is IndexSuccess) {
                 list = state.list;
-                return _buildUserGrid();
-              } else if (state is BaseEmpty) {
-                return Text("No record found, Please create a User");
+                return _buildIndexesGrid();
+              } else if (state is IndexEmpty) {
+                return Text("No record found, Please create a Indexes");
               }
-              return const Text("User has unknown state");
+              return const Text("Indexes has unknown state");
             },
           ),
         ],
@@ -71,12 +70,11 @@ class _UserPageState extends State<UserPage> {
       children: [
         TextButton.icon(
             onPressed: () async {
-              if (_dgController.selectedIndex == -1) {
+              if (_dgController.selectedIndex == -1)
                 _dgController.selectedIndex = 0;
-              }
               // var r =
               //     await showEditPageDialog(list[_dgController.selectedIndex]);
-              // setState(() {});
+              setState(() {});
             },
             icon: const Icon(Icons.edit),
             label: const Text(MenuConstants.edit)),
@@ -88,9 +86,9 @@ class _UserPageState extends State<UserPage> {
               // print(m);
               // if (r != null) {
               //   list.add(m);
-              //   if (BlocProvider.of<UserListCubit>(context).state
+              //   if (BlocProvider.of<IndexesListCubit>(context).state
               //       is BaseEmpty) {
-              //     BlocProvider.of<UserListCubit>(context)
+              //     BlocProvider.of<IndexesListCubit>(context)
               //         .emitInitialSuccess(list);
               //   } else {
               //     setState(() {});
@@ -101,11 +99,11 @@ class _UserPageState extends State<UserPage> {
             label: const Text(MenuConstants.newVal)),
         TextButton.icon(
             onPressed: () {
-              var sn = list[_dgController.selectedIndex].name;
+              var sn = list[_dgController.selectedIndex];
               var rest = showDialog<String>(
                 context: context,
                 builder: (BuildContext context) => AlertDialog(
-                  title: Text("Delete User $sn"),
+                  title: Text("Delete Indexes $sn"),
                   content:
                       const Text('After deletion you can not retrive it back!'),
                   actions: <Widget>[
@@ -128,20 +126,20 @@ class _UserPageState extends State<UserPage> {
     );
   }
 
-  // Future<dynamic> showEditPageDialog(UserModel model) {
+  // Future<dynamic> showEditPageDialog(IndexModel model) {
   //   return showDialog(
   //       context: context,
   //       builder: (BuildContext context) {
   //         return AlertDialog(
   //           alignment: Alignment.center,
-  //           // children: [UserEditPage()],
+  //           // children: [IndexesEditPage()],
   //           content: SizedBox(
   //               width: MediaQuery.of(context).size.width - 100,
   //               height: MediaQuery.of(context).size.height - 100,
   //               child: BlocProvider(
-  //                 create: (context) => UserEditCubit(),
-  //                 child: UserEditPage(
-  //                   us: model,
+  //                 create: (context) => IndexesEditCubit(),
+  //                 child: IndexesEditPage(
+  //                   in: model,
   //                 ),
   //               )),
   //           // title: Text('data'),
@@ -149,12 +147,12 @@ class _UserPageState extends State<UserPage> {
   //       });
   // }
 
-  Widget _buildUserGrid() {
+  Widget _buildIndexesGrid() {
     return Padding(
-      padding: EdgeInsets.all(AppValues.sfGridPadding),
+      padding: const EdgeInsets.all(AppValues.sfGridPadding),
       child: SfDataGrid(
           allowSorting: true,
-          source: UserDataGridSource(list),
+          source: IndexesDataGridSource(list),
           selectionMode: SelectionMode.single,
           allowPullToRefresh: true,
           navigationMode: GridNavigationMode.cell,
@@ -165,11 +163,11 @@ class _UserPageState extends State<UserPage> {
           // },
           onCellTap: (DataGridCellDetails details) async {
             _dgController.selectedIndex = details.rowColumnIndex.rowIndex - 1;
-            if (details.rowColumnIndex.columnIndex == 0) {
-              // await showEditPageDialog(list[_dgController.selectedIndex]);
-              // setState(() {});
-              // _dgController.selectedIndex = details.rowColumnIndex.rowIndex;
-            }
+            // if (details.rowColumnIndex.columnIndex == 0) {
+            //   await showEditPageDialog(list[_dgController.selectedIndex]);
+            //   setState(() {});
+            //   _dgController.selectedIndex = details.rowColumnIndex.rowIndex;
+            // }
           },
           columnWidthMode: isWebOrDesktop
               ? (isWebOrDesktop && Global.isMobileResolution)
@@ -180,12 +178,6 @@ class _UserPageState extends State<UserPage> {
                   : ColumnWidthMode.none,
           columns: <GridColumn>[
             UIHelper.buildGridColumn(label: 'Name', columnName: 'name'),
-            UIHelper.buildGridColumn(
-                label: 'First Name', columnName: 'firstName'),
-            UIHelper.buildGridColumn(
-                label: 'Last Name', columnName: 'lastName'),
-            UIHelper.buildGridColumn(label: 'Email', columnName: 'email'),
-            UIHelper.buildGridColumn(label: 'Mobile', columnName: 'mobile'),
           ]),
     );
   }
@@ -197,14 +189,9 @@ class _UserPageState extends State<UserPage> {
         MediaQuery.of(context).orientation == Orientation.landscape;
   }
 
-  UserModel createNewModel() {
-    return UserModel(
-      id: '',
+  IndexModel createNewModel() {
+    return IndexModel(
       name: '',
-      firstName: '',
-      lastName: '',
-      email: '',
-      mobile: '',
     );
   }
 }

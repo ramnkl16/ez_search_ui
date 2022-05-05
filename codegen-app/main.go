@@ -39,9 +39,9 @@ func main() {
 	for _, v := range strings.Split(*helper.FlagIgnore, ",") {
 		helper.IgnoreNames[v] = true
 	}
-
-	helper.TableColumns = helper.GetTableSchema(helper.Config)
-	helper.SpColumns = helper.GetProcedureParameters(helper.Config)
+	//TODO needs to be adjust the code according for sql code generation
+	// helper.TableColumns = helper.GetTableSchema(helper.Config)
+	// helper.SpColumns = helper.GetProcedureParameters(helper.Config)
 	//read defintion files and generated code
 	list, _ := dir.Readdirnames(0) // 0 to read all files and folders
 	for _, name := range list {

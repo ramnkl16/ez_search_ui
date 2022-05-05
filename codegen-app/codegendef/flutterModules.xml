@@ -84,7 +84,7 @@
      
     </model> -->
 
-    <model type="list" name="Namespace" modelName="NamespaceModel" template="model" fileNameExt="dart"    
+    <!-- <model type="list" name="Namespace" modelName="NamespaceModel" template="model" fileNameExt="dart"    
       shortName="ns"  restApiPath="api/namespace">
       <field type="String" name="id"  dartType="String" label="" inputType="text"  textInputType="text" maxCharLimit="" />
       <field type="String" name="customJson"  dartType="String" label="Custom Json" inputType="text"  textInputType="text" maxCharLimit="" />
@@ -128,7 +128,17 @@
       <field type="String" name="division"  dartType="String" label="Division" inputType="text"  textInputType="text" maxCharLimit="" />
       <field type="String" name="page"  dartType="String" label="Page" inputType="text"  textInputType="text" maxCharLimit="" />
       <field type="String" name="cd"  dartType="String" label="Custom Data" inputType="text"  textInputType="text" maxCharLimit="" />
-    </model>
+    </model> -->
+
+    <model type="list" name="Indexes" modelName="IndexModel" template="model|base_list|ds|cubit|state" fileNameExt="dart"    
+      shortName="w"  restApiPath="api/getindexes">
+      <field type="String" name="name"  dartType="String" label="Name" inputType="text"  textInputType="text" maxCharLimit="" />
+    </model> -->
+<model type="list" name="indexFields" modelName="IndexFieldModel" template="model|base_list|ds|cubit|state" fileNameExt="dart"    
+      shortName="w"  restApiPath="api/getindexes">
+      <field type="String" name="name"  dartType="String" label="Name" inputType="text"  textInputType="text" maxCharLimit="" />
+    </model> -->
+
 </models>
 
       

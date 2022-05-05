@@ -2,6 +2,8 @@ import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/cubit/hydratedCubit.dart';
 import 'package:ez_search_ui/helper/utilfunc.dart';
 import 'package:ez_search_ui/modules/authentication/authentication.cubit.dart';
+import 'package:ez_search_ui/modules/indexes/indexes.cubit.dart';
+import 'package:ez_search_ui/modules/indexfields/indexesFields.cubit.dart';
 import 'package:ez_search_ui/modules/login/login.logic.cubit.dart';
 import 'package:ez_search_ui/modules/login/login.repo.dart';
 import 'package:ez_search_ui/modules/menu/menu.cubit.dart';
@@ -52,6 +54,9 @@ Future<void> main() async {
         create: (context) => MenuCubit(),
       ),
       BlocProvider<RptQueryCubit>(create: ((context) => RptQueryCubit())),
+      BlocProvider<IndexListCubit>(create: ((context) => IndexListCubit())),
+      BlocProvider<IndexFieldListCubit>(
+          create: ((context) => IndexFieldListCubit())),
       BlocProvider<SearchCubit>(
         create: (context) => SearchCubit(),
       ),
