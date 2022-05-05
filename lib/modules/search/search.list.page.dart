@@ -165,7 +165,7 @@ class _SearchPageState extends State<SearchPage> {
                       onPressed: () {
                         _showMaterialDialog();
                       },
-                      icon: Icon(Icons.save_as_outlined),
+                      icon: Icon(Icons.save_alt_sharp),
                       tooltip: "Save as"),
                   if (state is BaseLoading) CircularProgressIndicator(),
                   if (state is RptQueryFailure) Text(state.errorMsg),

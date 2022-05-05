@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/constants/api_endpoints.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
-import 'package:ez_search_ui/constants/navigation_path.dart';
+
 import 'package:ez_search_ui/helper/UIHelper.dart';
 import 'package:ez_search_ui/helper/utilfunc.dart';
 import 'package:ez_search_ui/modules/authentication/authentication.cubit.dart';
@@ -77,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       Text('Login',
                           textAlign: TextAlign.left,
-                          style: Theme.of(context).textTheme.titleLarge),
+                          style: Theme.of(context).textTheme.bodyText1),
                       SizedBox(
                         height: 50,
                       ),

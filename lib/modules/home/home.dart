@@ -157,7 +157,7 @@ class _HomePageState extends State<HomePage> {
         PopupMenuItem<int>(
           value: 1,
           child: Row(children: const [
-            Icon(Icons.data_thresholding_outlined, color: Colors.black),
+            Icon(Icons.data_saver_off_sharp, color: Colors.black),
             SizedBox(width: 7),
             Text(AppValues.dataRefreshLbl),
           ]),
