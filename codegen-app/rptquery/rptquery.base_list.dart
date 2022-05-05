@@ -41,7 +41,6 @@ class _RptQueryPageState extends State<RptQueryPage> {
     return Scaffold(
       body: Column(
         children: [
-          _buildMenu(),
           BlocBuilder<RptQueryCubit, BaseState>(
             builder: (context, state) {
               print(state.runtimeType);
@@ -62,68 +61,6 @@ class _RptQueryPageState extends State<RptQueryPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildMenu() {
-    return Row(
-      children: [
-        TextButton.icon(
-            onPressed: () async {
-              if (_dgController.selectedIndex == -1) {
-                _dgController.selectedIndex = 0;
-              }
-              // var r =
-              //     await showEditPageDialog(list[_dgController.selectedIndex]);
-              // setState(() {});
-            },
-            icon: const Icon(Icons.edit),
-            label: const Text(MenuConstants.edit)),
-        TextButton.icon(
-            onPressed: () async {
-              var m = createNewModel();
-
-              // var r = await showEditPageDialog(m);
-              // print(m);
-              // if (r != null) {
-              //   list.add(m);
-              //   if (BlocProvider.of<RptQueryCubit>(context).state
-              //       is BaseEmpty) {
-              //     BlocProvider.of<RptQueryCubit>(context)
-              //         .emitInitialSuccess(list);
-              //   } else {
-              //     setState(() {});
-              //   }
-              // }
-            },
-            icon: const Icon(Icons.add),
-            label: const Text(MenuConstants.newVal)),
-        TextButton.icon(
-            onPressed: () {
-              var sn = list[_dgController.selectedIndex].name;
-              var rest = showDialog<String>(
-                context: context,
-                builder: (BuildContext context) => AlertDialog(
-                  title: Text("Delete RptQuery $sn"),
-                  content:
-                      const Text('After deletion you can not retrive it back!'),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, 'Cancel'),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, 'OK'),
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-              //perform delete api and remove item from the list
-            },
-            icon: const Icon(Icons.delete),
-            label: const Text(MenuConstants.deleteVal))
-      ],
     );
   }
 
