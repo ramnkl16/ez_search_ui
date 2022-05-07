@@ -71,6 +71,7 @@ class _SearchPageState extends State<SearchPage> {
 
   /// Determine to decide whether the device in landscape or in portrait.
   late bool isLandscapeInMobileView;
+  late double pageMaxheight;
 
   @override
   void initState() {
@@ -132,6 +133,9 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: LayoutBuilder(builder: (context, constraints) {
+      pageMaxheight = constraints.maxHeight;
+      print(
+          "Boxconstraint ${constraints.maxHeight}, w= ${constraints.maxWidth}");
       return Column(
         children: [
           Row(children: [
@@ -165,7 +169,7 @@ class _SearchPageState extends State<SearchPage> {
                       onPressed: () {
                         _showMaterialDialog();
                       },
-                      icon: Icon(Icons.save_alt_sharp),
+                      icon: Icon(Icons.save_as_outlined),
                       tooltip: "Save as"),
                   if (state is BaseLoading) CircularProgressIndicator(),
                   if (state is RptQueryFailure) Text(state.errorMsg),
@@ -188,7 +192,7 @@ class _SearchPageState extends State<SearchPage> {
               );
             }),
           ]),
-          Expanded(child: _sfGridBuildBlocBuilder()),
+          _sfGridBuildBlocBuilder(),
         ],
       );
     }));
@@ -651,11 +655,11 @@ class _SearchPageState extends State<SearchPage> {
       builder: (context, state) {
         if (state is SearchLoading) {
           return SizedBox(
-              height: 16,
-              width: 16,
+              height: 45,
+              width: 45,
               child: Center(
                   child: const CircularProgressIndicator(
-                strokeWidth: 1.5,
+                strokeWidth: 4,
               )));
         } else if (state is SearchFailure) {
           return Center(
@@ -732,13 +736,12 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                  border: Border(left: BorderSide(color: Colors.black))),
-              child: Column(children: [
-                _buildQueryCtrls(),
-                Padding(
-                  padding: EdgeInsets.all(AppValues.sfGridPadding),
+            child: Column(children: [
+              _buildQueryCtrls(),
+              Padding(
+                padding: EdgeInsets.all(AppValues.sfGridPadding),
+                child: Container(
+                  height: pageMaxheight - 200,
                   child: SfDataGrid(
                       allowSorting: true,
                       isScrollbarAlwaysShown: true,
@@ -757,8 +760,8 @@ class _SearchPageState extends State<SearchPage> {
                       // },
                       columns: _buildGirdColumn),
                 ),
-              ]),
-            ),
+              ),
+            ]),
           ),
         ],
       ),
