@@ -29,7 +29,7 @@ class IndexFieldListCubit extends Cubit<IndexState> {
     emit(IndexLoading());
     try {
       var repo = IndexRepo();
-      print("getIndexes");
+      print("getIndexeFields | $indexName");
       List<String> list =
           await repo.getIndexes(ApiPaths.ListIndexFields, indexName);
       if (list == null) {

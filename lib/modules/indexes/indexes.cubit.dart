@@ -23,7 +23,7 @@ class IndexListCubit extends Cubit<IndexState> {
 
   IndexRepo repo = IndexRepo();
 
-  Future<void> getIndexes() async {
+  Future<void> getIndexes(String text) async {
     emit(IndexLoading());
     try {
       var repo = IndexRepo();
