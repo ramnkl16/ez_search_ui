@@ -28,7 +28,7 @@ class BaseCubit<T> extends Cubit<BaseState> {
   Future<void> getAllListData(String relativeUrl) async {
     emit(BaseLoading());
     try {
-      print("inside try|$relativeUrl");
+      // print("inside try|$relativeUrl");
       // var token = await RepoHelper.getValue(ApiValues.authTokenHeader);
       List<T> items = await baseRepo.getAllList<T>(relativeUrl, jsonDeserialize,
           globalValues: globalValues);
@@ -60,7 +60,7 @@ class BaseCubit<T> extends Cubit<BaseState> {
   Future<void> createOrUpdate(String relativeUrl, T data) async {
     emit(BaseLoading());
     try {
-      print("save data ${jsonSerialize(data)}");
+      // print("save data ${jsonSerialize(data)}");
       String? id =
           await baseRepo.createOrUpdate(relativeUrl, jsonSerialize(data));
       emit(BaseEditSuccess(id: id));

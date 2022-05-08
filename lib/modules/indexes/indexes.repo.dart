@@ -16,10 +16,10 @@ class IndexRepo {
   Future<List<String>> getIndexes(String apiEndPoint,
       [String? indexName]) async {
     //req = '{"q":"$req"}';
-    print("indexRepo| $apiEndPoint");
+    // print("indexRepo| $apiEndPoint");
     var token = await RepoHelper.getValue(ApiValues.authTokenHeader);
     var nsId = await RepoHelper.getValue(SharedPrefKeys.nsID);
-    print("getsearchData| token $token nsId $nsId");
+    // print("getsearchData| token $token nsId $nsId");
     if (token == null || nsId == null) {
       Global.pushLoginUnAuth();
       throw UnauthorizedException(message: AppValues.unAuthCubitMsg);
@@ -30,7 +30,7 @@ class IndexRepo {
     }
     http.Response response =
         await RestClient.exeReq(RequestType.GET, apiEndPoint, null, qParams);
-    print("indexrepo ${response.statusCode} body:${response.body}");
+    // print("indexrepo ${response.statusCode} body:${response.body}");
     List<String> list = <String>[];
     if (response.statusCode >= 200 && response.statusCode <= 299) {
       var resBody = jsonDecode(response.body);

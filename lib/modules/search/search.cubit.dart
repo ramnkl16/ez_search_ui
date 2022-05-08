@@ -24,6 +24,7 @@ class SearchCubit extends Cubit<SearchState> {
       var repo = SearchRepo();
       print("gtallserchs| $req");
       SearchResult search = await repo.getSearchData(req);
+      // print("gtallserchs|27");
       if (search.resultRow == null) {
         emit(SearchEmpty());
       } else {

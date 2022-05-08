@@ -56,7 +56,7 @@ class SharedPreferencesStorage extends StorageService {
   @override
   Future<void> setApiConnColl(String connColl) async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString(apiActiveConnKey, connColl);
+    prefs.setString(apiConnCollKey, connColl);
   }
 
   @override
@@ -68,7 +68,7 @@ class SharedPreferencesStorage extends StorageService {
   @override
   Future<void> setAuthToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString(apiActiveConnKey, token);
+    prefs.setString(authTokenHeaderKey, token);
   }
 
   @override
@@ -78,8 +78,8 @@ class SharedPreferencesStorage extends StorageService {
   }
 
   @override
-  Future<void> setNamespace(String connColl) async {
+  Future<void> setNamespace(String namespace) async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString(apiActiveConnKey, connColl);
+    prefs.setString(nsIDKey, namespace);
   }
 }

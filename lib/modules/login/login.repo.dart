@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:ez_search_ui/services/serviceLocator.dart';
+import 'package:ez_search_ui/services/storageservice/storageservice.dart';
+import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ez_search_ui/constants/api_values.dart';
-import 'package:ez_search_ui/constants/app_constant.dart';
+
 import 'package:ez_search_ui/helper/RepoHelper.dart';
 
 import 'login.reponse.model.dart';
@@ -17,16 +20,19 @@ class LoginRepository {
 
   Future<LoginResponse> authenticateUser(LoginRequest loginRequest) async {
     http.Response loginResponse = await loginProvider.loginUser(loginRequest);
-    print("after post api call");
+    //print("after post api call");
     print(loginResponse.statusCode);
 
     if (loginResponse.statusCode == HttpStatus.ok) {
       var jsonResp = jsonDecode(loginResponse.body);
-      print("json resp $jsonResp");
+      //print("json resp $jsonResp");
       LoginResponse result = LoginResponse.fromMap(jsonResp);
-      await storeAuthToken(ApiValues.authTokenHeader, result.authToken);
-      await storeAuthToken(SharedPrefKeys.nsID, result.namespaceId);
-      await storeAuthToken(SharedPrefKeys.grpID, result.groupId);
+      var prefs = getIt<StorageService>();
+      await prefs.setAuthToken(result.authToken);
+      await prefs.setNamespace(loginRequest.nsCode);
+      // await storeAuthToken(ApiValues.authTokenHeader, result.authToken);
+      // await storeAuthToken(SharedPrefKeys.nsID, result.namespaceId);
+      // await storeAuthToken(SharedPrefKeys.grpID, result.groupId);
       await updateTokenTime(DateTime.now().toString());
       return result;
     } else {
@@ -40,7 +46,7 @@ class LoginRepository {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var res = await prefs.setString(key, value);
     // await prefs.setString(ApiValues.nsIDSharedPref, nsID);
-    print("Stored key: $key with value: $value : ${res.toString()}");
+    //print("Stored key: $key with value: $value : ${res.toString()}");
     return res;
   }
 
@@ -48,7 +54,7 @@ class LoginRepository {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     // String? time = prefs.getString(key);
     var time = await prefs.setString(ApiValues.authTokenTime, dateTime);
-    print("Stored key time: " + time.toString());
+    //print("Stored key time: " + time.toString());
     return time;
   }
 
