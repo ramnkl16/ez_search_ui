@@ -90,41 +90,44 @@ class _UserPageState extends State<UserPage> {
   Widget _buildUserGrid() {
     return Padding(
       padding: EdgeInsets.all(AppValues.sfGridPadding),
-      child: SfDataGrid(
-          allowSorting: true,
-          source: UserDataGridSource(list),
-          selectionMode: SelectionMode.single,
-          allowPullToRefresh: true,
-          navigationMode: GridNavigationMode.cell,
-          controller: _dgController,
+      child: Container(
+        height: 450,
+        child: SfDataGrid(
+            allowSorting: true,
+            source: UserDataGridSource(list),
+            selectionMode: SelectionMode.single,
+            allowPullToRefresh: true,
+            navigationMode: GridNavigationMode.cell,
+            controller: _dgController,
 
-          // onSelectionChanging: (addedRows, removedRows) {
+            // onSelectionChanging: (addedRows, removedRows) {
 
-          // },
-          onCellTap: (DataGridCellDetails details) async {
-            _dgController.selectedIndex = details.rowColumnIndex.rowIndex - 1;
-            if (details.rowColumnIndex.columnIndex == 0) {
-              // await showEditPageDialog(list[_dgController.selectedIndex]);
-              // setState(() {});
-              // _dgController.selectedIndex = details.rowColumnIndex.rowIndex;
-            }
-          },
-          columnWidthMode: isWebOrDesktop
-              ? (isWebOrDesktop && Global.isMobileResolution)
-                  ? ColumnWidthMode.none
-                  : ColumnWidthMode.fill
-              : isLandscapeInMobileView
-                  ? ColumnWidthMode.fill
-                  : ColumnWidthMode.none,
-          columns: <GridColumn>[
-            UIHelper.buildGridColumn(label: 'Name', columnName: 'name'),
-            UIHelper.buildGridColumn(
-                label: 'First Name', columnName: 'firstName'),
-            UIHelper.buildGridColumn(
-                label: 'Last Name', columnName: 'lastName'),
-            UIHelper.buildGridColumn(label: 'Email', columnName: 'email'),
-            UIHelper.buildGridColumn(label: 'Mobile', columnName: 'mobile'),
-          ]),
+            // },
+            onCellTap: (DataGridCellDetails details) async {
+              _dgController.selectedIndex = details.rowColumnIndex.rowIndex - 1;
+              if (details.rowColumnIndex.columnIndex == 0) {
+                // await showEditPageDialog(list[_dgController.selectedIndex]);
+                // setState(() {});
+                // _dgController.selectedIndex = details.rowColumnIndex.rowIndex;
+              }
+            },
+            columnWidthMode: isWebOrDesktop
+                ? (isWebOrDesktop && Global.isMobileResolution)
+                    ? ColumnWidthMode.none
+                    : ColumnWidthMode.fill
+                : isLandscapeInMobileView
+                    ? ColumnWidthMode.fill
+                    : ColumnWidthMode.none,
+            columns: <GridColumn>[
+              UIHelper.buildGridColumn(label: 'Name', columnName: 'name'),
+              UIHelper.buildGridColumn(
+                  label: 'First Name', columnName: 'firstName'),
+              UIHelper.buildGridColumn(
+                  label: 'Last Name', columnName: 'lastName'),
+              UIHelper.buildGridColumn(label: 'Email', columnName: 'email'),
+              UIHelper.buildGridColumn(label: 'Mobile', columnName: 'mobile'),
+            ]),
+      ),
     );
   }
 

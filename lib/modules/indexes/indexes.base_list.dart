@@ -88,35 +88,38 @@ class _IndexesPageState extends State<IndexesPage> {
   Widget _buildIndexesGrid() {
     return Padding(
       padding: const EdgeInsets.all(AppValues.sfGridPadding),
-      child: SfDataGrid(
-          allowSorting: true,
-          source: IndexesDataGridSource(list),
-          selectionMode: SelectionMode.single,
-          allowPullToRefresh: true,
-          navigationMode: GridNavigationMode.cell,
-          controller: _dgController,
+      child: Container(
+        height: 480,
+        child: SfDataGrid(
+            allowSorting: true,
+            source: IndexesDataGridSource(list),
+            selectionMode: SelectionMode.single,
+            allowPullToRefresh: true,
+            navigationMode: GridNavigationMode.cell,
+            controller: _dgController,
 
-          // onSelectionChanging: (addedRows, removedRows) {
+            // onSelectionChanging: (addedRows, removedRows) {
 
-          // },
-          onCellTap: (DataGridCellDetails details) async {
-            _dgController.selectedIndex = details.rowColumnIndex.rowIndex - 1;
-            // if (details.rowColumnIndex.columnIndex == 0) {
-            //   await showEditPageDialog(list[_dgController.selectedIndex]);
-            //   setState(() {});
-            //   _dgController.selectedIndex = details.rowColumnIndex.rowIndex;
-            // }
-          },
-          columnWidthMode: isWebOrDesktop
-              ? (isWebOrDesktop && Global.isMobileResolution)
-                  ? ColumnWidthMode.none
-                  : ColumnWidthMode.fill
-              : isLandscapeInMobileView
-                  ? ColumnWidthMode.fill
-                  : ColumnWidthMode.none,
-          columns: <GridColumn>[
-            UIHelper.buildGridColumn(label: 'Name', columnName: 'name'),
-          ]),
+            // },
+            onCellTap: (DataGridCellDetails details) async {
+              _dgController.selectedIndex = details.rowColumnIndex.rowIndex - 1;
+              // if (details.rowColumnIndex.columnIndex == 0) {
+              //   await showEditPageDialog(list[_dgController.selectedIndex]);
+              //   setState(() {});
+              //   _dgController.selectedIndex = details.rowColumnIndex.rowIndex;
+              // }
+            },
+            columnWidthMode: isWebOrDesktop
+                ? (isWebOrDesktop && Global.isMobileResolution)
+                    ? ColumnWidthMode.none
+                    : ColumnWidthMode.fill
+                : isLandscapeInMobileView
+                    ? ColumnWidthMode.fill
+                    : ColumnWidthMode.none,
+            columns: <GridColumn>[
+              UIHelper.buildGridColumn(label: 'Name', columnName: 'name'),
+            ]),
+      ),
     );
   }
 

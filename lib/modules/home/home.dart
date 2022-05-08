@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:ez_search_ui/helper/commondropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ez_search_ui/common/base_cubit.dart';
@@ -28,6 +29,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   GlobalKey<NavigatorState> globalKey = GlobalKey();
+  List<String> list = [];
+
+  List<String> dropDownList = <String>[];
+  String curItem = '';
+
+  final fn = FocusNode();
+
   @override
   void initState() {
     BlocProvider.of<AuthenticationCubit>(context).checkAuthenticationStatus();
@@ -53,10 +61,24 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  String defaultItem = 'Api 1';
+
+  // List of items in our dropdown menu
+  var item = [
+    'Api 1',
+    'Api 2',
+    'Api 3',
+    'Api 4',
+    'Api 5',
+  ];
+
+  Icon customIcon = const Icon(Icons.refresh_outlined);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         centerTitle: true,
         title: Text(AppValues.homePageTitleLbl),
         actions: [
@@ -99,6 +121,33 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget buildDropDown() {
+    return Column(
+      children: [
+        DropdownButton(
+          elevation: 5,
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+          value: defaultItem,
+          icon: const Icon(Icons.keyboard_arrow_down),
+          isExpanded: true,
+          iconSize: 30.0,
+          style: TextStyle(color: Colors.blue),
+          items: item.map((String items) {
+            return DropdownMenuItem(
+              value: items,
+              child: Text(items),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              defaultItem = newValue!;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
 //action items for desktop
   Widget appBarRightSideActionD() {
     return Row(
@@ -110,9 +159,14 @@ class _HomePageState extends State<HomePage> {
               fontSize: 15, color: Colors.white, fontWeight: FontWeight.normal),
           message: AppValues.apiConnLbl,
           child: IconButton(
-            icon: Icon(Icons.api_rounded),
-            onPressed: () => selectedItem(context, 0),
-          ),
+              icon: Icon(Icons.api_rounded),
+              onPressed: () {
+                setState(() {
+                  if (customIcon.icon == Icons.refresh_outlined) {
+                    selectedItem(context, 0);
+                  }
+                });
+              }),
         ),
         Tooltip(
           //waitDuration: Duration(seconds: 1),
@@ -123,9 +177,8 @@ class _HomePageState extends State<HomePage> {
               fontSize: 15, color: Colors.white, fontWeight: FontWeight.normal),
           message: AppValues.dataRefreshLbl,
           child: IconButton(
-            icon: Icon(Icons.refresh_outlined),
-            onPressed: () => selectedItem(context, 1),
-          ),
+              icon: Icon(Icons.refresh_outlined),
+              onPressed: () => selectedItem(context, 1)),
         ),
         Tooltip(
           padding: EdgeInsets.all(5),
@@ -179,6 +232,8 @@ class _HomePageState extends State<HomePage> {
     switch (item) {
       case 0:
         print('Api configuration');
+        buildDropDown();
+
         break;
       case 1:
         print('Data Refresh');
@@ -194,6 +249,12 @@ class _HomePageState extends State<HomePage> {
             LoginRoute(redirectRoute: NavigationPath.homePageBase + "search"));
         break;
     }
+  }
+
+  void _getDropDownItems() {
+    //print("_execSearchQuery() ${curRptQuery.CustomData} ${qTxtCtrl.text}");
+    print("_getIndexFields() | $dropDownList");
+    BlocProvider.of<MenuCubit>(context).getAllListData(curItem);
   }
 
   BlocBuilder<MenuCubit, BaseState> buildNavDrawer() {
