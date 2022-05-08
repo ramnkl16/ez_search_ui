@@ -9,7 +9,7 @@ import 'package:ez_search_ui/modules/rptquery/rptquery.model.dart';
 class RptQueryRepo {
   final RepoHelper repositoryHelper = RepoHelper();
   Future<String?> createOrUpdateQueryDef(RptQueryModel body) async {
-    print("createorUpdate-rpt query ${body.toJson()}");
+    // print("createorUpdate-rpt query ${body.toJson()}");
     http.Response response = await RestClient.exeReq(
         RequestType.POST, ApiPaths.rptQuerySave, body.toJson());
     if (response.statusCode >= 200 && response.statusCode < 300) {

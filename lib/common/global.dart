@@ -41,9 +41,9 @@ class Global {
     var router = getIt<AppRouter>();
 
     var path = router.topMatch.path;
-    print("Repo helper reached");
+    // print("Repo helper reached");
 
-    print("Unauthorized");
+    // print("Unauthorized");
     // router.replaceAll([LoginRoute()]);
     if (path != NavigationPath.loginPageBase) {
       router.navigate(
@@ -52,7 +52,7 @@ class Global {
   }
 
   static Future<void> loadInitialMeta() async {
-    print("loadInitialMeta is called");
+    // print("loadInitialMeta is called");
     namespaceId = (await RepoHelper.getValue(SharedPrefKeys.nsID))!;
     authToken = (await RepoHelper.getValue(ApiValues.authTokenHeader))!;
   }

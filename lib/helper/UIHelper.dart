@@ -147,7 +147,7 @@ class UIHelper {
   static Widget buildRegGridElemt(String val) {
     return Container(
       padding: const EdgeInsets.all(4.0),
-      child: Text(
+      child: SelectableText(
         val,
         textAlign: TextAlign.left,
       ),

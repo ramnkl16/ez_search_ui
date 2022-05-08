@@ -53,7 +53,7 @@ class _UserPageState extends State<UserPage> {
                 );
               } else if (state is BaseListSuccess<UserModel>) {
                 list = state.list;
-                print("UserListCubit|success $list");
+                //print("UserListCubit|success $list");
                 return _buildUserGrid();
               } else if (state is BaseEmpty) {
                 return Text("No record found, Please create a User");
