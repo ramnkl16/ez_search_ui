@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:ez_search_ui/main.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,9 +9,7 @@ import 'package:ez_search_ui/constants/app_values.dart';
 part 'authentication.state.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
-  AuthenticationCubit(this.isAuthenticated) : super(AuthenticationInitial());
-
-  bool isAuthenticated;
+  AuthenticationCubit() : super(AuthenticationInitial());
 
   Future<void> checkAuthenticationStatus() async {
     // emit(Authentica)

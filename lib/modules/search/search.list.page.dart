@@ -548,7 +548,7 @@ class _SearchPageState extends State<SearchPage> {
       curRptQuery = RptQueryModel(
           id: "",
           name: nqNameCtrl.text,
-          division: UtilFunc.getNamespace(),
+          division: "",
           page: "search",
           CustomData: qTxtCtrl.text);
       rptList.add(curRptQuery);

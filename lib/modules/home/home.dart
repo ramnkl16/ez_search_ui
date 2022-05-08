@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     BlocProvider.of<AuthenticationCubit>(context).checkAuthenticationStatus();
-    print("default connection ${UtilFunc.getDefaultConnection()}");
+    //print("default connection ${UtilFunc.getDefaultConnection()}");
 
     Global.loadBlocMetaDatas(context);
     performInitOperatons();
@@ -238,13 +238,13 @@ class _HomePageState extends State<HomePage> {
       case 1:
         print('Data Refresh');
         UtilFunc.clearHydratedStorage();
-        UtilFunc.clearSharedStorage();
+        //UtilFunc.clearSharedStorage();
         AutoRouter.of(context).popAndPush(
             LoginRoute(redirectRoute: NavigationPath.homePageBase + "search"));
         break;
       case 2:
         print('logout');
-        UtilFunc.clearSharedStorage();
+        //UtilFunc.clearSharedStorage();
         AutoRouter.of(context).popAndPush(
             LoginRoute(redirectRoute: NavigationPath.homePageBase + "search"));
         break;

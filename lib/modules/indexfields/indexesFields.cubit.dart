@@ -31,7 +31,7 @@ class IndexFieldListCubit extends Cubit<IndexState> {
       var repo = IndexRepo();
       print("getIndexeFields | $indexName");
       List<String> list =
-          await repo.getIndexes(ApiPaths.ListIndexFields, indexName);
+          await repo.getIndexes(ApiPaths.listIndexFields, indexName);
       if (list == null) {
         emit(IndexEmpty());
       } else {
@@ -39,7 +39,7 @@ class IndexFieldListCubit extends Cubit<IndexState> {
       }
     } on CustomException catch (e, s) {
       if (e is UnauthorizedException) {
-        MyApp.isAuthenticated = false;
+        isAuthenticated = false;
       }
       print("CustomException: $e $s ");
       emit(IndexFailure(errorMsg: e.toString(), errorCode: e.statusCode));

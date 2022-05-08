@@ -31,7 +31,7 @@ class SearchCubit extends Cubit<SearchState> {
       }
     } on CustomException catch (e, s) {
       if (e is UnauthorizedException) {
-        MyApp.isAuthenticated = false;
+        isAuthenticated = false;
       }
       print("CustomException: $e $s ");
       emit(SearchFailure(errorMsg: e.toString(), errorCode: e.statusCode));

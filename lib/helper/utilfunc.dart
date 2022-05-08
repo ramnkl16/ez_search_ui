@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:ez_search_ui/services/serviceLocator.dart';
+import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ez_search_ui/constants/app_constant.dart';
@@ -11,57 +13,39 @@ class UtilFunc {
     await storage.clear();
   }
 
-  static Future<void> clearSharedStorage() async {
-    var storage = await SharedPreferences.getInstance();
-    storage.clear();
-  }
+  // static Future<void> clearSharedStorage() async {
+  //   var storage = await SharedPreferences.getInstance();
+  //   storage.clear();
+  // }
 
-  static String getAuthToken({String key = "x-auth"}) {
-    var storage = getIt<SharedPreferences>();
-    print('get namespace started');
-    Object? str = storage.get(SharedPrefKeys.x_auth);
-    if (str != null) {
-      return str as String;
-    }
-    return "";
-  }
+  // static Future<String> getAuthToken({String key = "x-auth"}) async {
+  //   var storage = getIt<StorageService>();
+  //   print('get namespace started');
+  //   Object? str = await storage.getAuthToken();
+  //   if (str != null) {
+  //     return str as String;
+  //   }
+  //   return "";
+  // }
 
-  static String getNamespace({String key = "nsid"}) {
-    var storage = getIt<SharedPreferences>();
-    print('get namespace started');
-    Object? str = storage.get(SharedPrefKeys.nsID);
-    if (str != null) {
-      return str as String;
-    }
-    return "";
-  }
+  // static String getNamespace({String key = "nsid"}) {
+  //   var storage = getIt<StorageService>();
+  //   print('get namespace started');
+  //   Object? str = storage.getNamespace();
+  //   if (str != null) {
+  //     return str as String;
+  //   }
+  //   return "";
+  // }
 
-  static String getDefaultConnection({String key = "default"}) {
-    var storage = getIt<SharedPreferences>();
-    print('getDefaultConnection started');
-    Object? str = storage.get(SharedPrefKeys.apiConns);
-    if (str != null) {
-      var jsonObj = jsonDecode(str as String);
-      return jsonObj[key];
-    }
-    print(
-        'getDefaultConnection end ${storage.getKeys()} ${storage.get('default')}');
-    return "";
-  }
+  // static Future<String?> getDefaultConnection({String key = "default"}) async {
+  //   var storage = getIt<StorageService>();
+  //   print('getDefaultConnection started');
+  //   String? str = await storage.getApiActiveConn();
+  //   if (str != null) {
+  //     return str;
+  //   }
+  //   return "";
+  // }
 
-  static void setConnection(String key, String connString) {
-    var storage = getIt<SharedPreferences>();
-    storage.getKeys();
-    print('setConnection started');
-    Object? str = storage.get(SharedPrefKeys.apiConns);
-    dynamic jsonObj;
-    if (str != null) {
-      jsonObj = jsonDecode(str as String);
-    } else {
-      jsonObj = <String, String>{};
-    }
-    jsonObj[key] = connString;
-    storage.setString(key, jsonEncode(jsonObj));
-    print('setConnection completed ${storage.getKeys()}');
-  }
 }

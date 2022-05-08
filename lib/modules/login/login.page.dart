@@ -1,4 +1,7 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:ez_search_ui/main.dart';
+import 'package:ez_search_ui/services/serviceLocator.dart';
+import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -29,19 +32,20 @@ class _LoginPageState extends State<LoginPage> {
   late TextEditingController emailOrMobCtrl;
   late TextEditingController pwdCtrl;
   late TextEditingController connCtrl;
-  late String apiConn;
 
   @override
   void initState() {
     domainCtrl = TextEditingController();
     emailOrMobCtrl = TextEditingController();
     pwdCtrl = TextEditingController();
-    connCtrl = TextEditingController(text: ApiPaths.baseURL);
+    connCtrl = TextEditingController(text: apiConn); //apiConn global variable
 
     domainCtrl.text = 'platform';
     emailOrMobCtrl.text = 'admin@gost.com';
     pwdCtrl.text = 'welcome@123';
-    apiConn = UtilFunc.getDefaultConnection();
+
+    //var prefs = getIt<StorageService>();
+    //apiConn = await prefs.getApiActiveConn();
 
     // domainCtrl.text = 'PLATFORM';
     // emailOrMobCtrl.text = 'platformadmin@gmail.com';
@@ -156,20 +160,20 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      if (apiConn.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            width: AppValues.loginWidgetWidth,
-                            child: TextField(
-                              controller: connCtrl,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Api Connection string'),
-                            ),
+                      // if (apiConn == null)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SizedBox(
+                          width: AppValues.loginWidgetWidth,
+                          child: TextField(
+                            controller: connCtrl,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Api Connection string'),
                           ),
                         ),
+                      ),
                       SizedBox(
                         height: 20,
                       ),
