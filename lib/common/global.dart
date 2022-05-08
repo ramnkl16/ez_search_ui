@@ -1,3 +1,4 @@
+import 'package:ez_search_ui/services/serviceLocator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ez_search_ui/constants/api_values.dart';

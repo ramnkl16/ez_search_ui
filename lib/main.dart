@@ -1,4 +1,5 @@
 import 'package:ez_search_ui/common/global.dart';
+import 'package:ez_search_ui/constants/api_endpoints.dart';
 import 'package:ez_search_ui/cubit/hydratedCubit.dart';
 import 'package:ez_search_ui/helper/utilfunc.dart';
 import 'package:ez_search_ui/modules/authentication/authentication.cubit.dart';
@@ -11,13 +12,14 @@ import 'package:ez_search_ui/modules/rptquery/rptquery.cubit.dart';
 import 'package:ez_search_ui/modules/search/search.cubit.dart';
 import 'package:ez_search_ui/modules/user/user.cubit.dart';
 import 'package:ez_search_ui/router/appRouter.gr.dart';
+
+import 'package:ez_search_ui/services/serviceLocator.dart';
+import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,20 +31,21 @@ Future<void> main() async {
         : await getTemporaryDirectory(),
   );
   //Registering singleton instance of AppRouter access throughout the project
-  getIt.registerSingleton<AppRouter>(AppRouter());
-  getIt.registerSingleton<SharedPreferences>(
-      await SharedPreferences.getInstance());
-
-  var neww = UtilFunc.getDefaultConnection();
-  print('main.dart default $neww');
-  // await MyApp.checkAuthenticationStatus();
-
+  // getIt.registerSingleton<AppRouter>(AppRouter());
+  // getIt.registerSingleton<SharedPreferences>(
+  //     await SharedPreferences.getInstance());
+  setupGetIt();
+  var prefs = getIt<StorageService>();
+  var token = await prefs.getAuthToken();
+  if (token != null) isAuthenticated = true;
+  var conn = await prefs.getApiActiveConn();
+  if (conn != null) apiConn = conn;
   HydratedBlocOverrides.runZoned(
     () => runApp(MultiBlocProvider(providers: [
       BlocProvider<LoginCubit>(
           create: (context) => LoginCubit(LoginRepository())),
       BlocProvider<AuthenticationCubit>(
-        create: (context) => AuthenticationCubit(false),
+        create: (context) => AuthenticationCubit(),
       ),
       BlocProvider<UserMenuListCubit>(
         create: (context) => UserMenuListCubit(),
@@ -68,23 +71,21 @@ Future<void> main() async {
   );
 }
 
-final getIt = GetIt.instance;
+bool isAuthenticated = false;
+String apiConn = ApiPaths.baseURL.startsWith('127.')
+    ? 'localhost|${ApiPaths.baseURL}'
+    : ApiPaths.baseURL;
 
 class MyApp extends StatelessWidget {
   MyApp({Key? key}) : super(key: key);
 
-  final _appRouter = getIt.get<AppRouter>();
-
-  static late bool isAuthenticated;
   // This widget is the root of your application.
+  final _appRouter = getIt<AppRouter>();
 
   @override
   Widget build(BuildContext context) {
     print("myapp build");
 
-    var token = UtilFunc.getAuthToken();
-    if (token.isNotEmpty) isAuthenticated = true;
-    BlocProvider.of<AuthenticationCubit>(context).isAuthenticated;
     return BlocListener<AuthenticationCubit, AuthenticationState>(
       listener: (context, state) {
         print('Auth listnener called');
