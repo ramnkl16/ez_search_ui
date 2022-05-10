@@ -2,7 +2,9 @@
 Explore the indexed document which is built using [bleve](http://blevesearch.com/docs/Home/) and view the data using sql query 
 Source code for rest api is available [here](https://github.com/ramnkl16/ez-search)
 
-
+64bit base code encode info
+{"u":"duplo@gost.com", "p":"welcome@123","n":"duplo"}|eyJ1IjoiZHVwbG9AZ29zdC5jb20iLCAicCI6IndlbGNvbWVAMTIzIiwibiI6ImR1cGxvIn0=
+{"u":"admin@gost.com", "p":"welcome@123","n":"platform"}|eyJ1IjoiYWRtaW5AZ29zdC5jb20iLCAicCI6IndlbGNvbWVAMTIzIiwibiI6InBsYXRmb3JtIn0=
 
 ## Getting Started
 

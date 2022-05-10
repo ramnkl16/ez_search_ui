@@ -28,18 +28,18 @@ class HydratedBaseCubit<T> extends HydratedCubit<BaseState> {
 
   @override
   fromJson(Map<String, dynamic> json) {
-    print('From json called ${T.runtimeType}' + T.runtimeType.toString());
-    print(jsonDeserialize);
-    print(json);
+    //print('From json called ${T.runtimeType}' + T.runtimeType.toString());
+    // print(jsonDeserialize);
+    // print(json);
     List<dynamic>? data = json['list'];
-    print(data);
+    // print(data);
     if (data != null) {
-      print('Inside dat!= null if');
+      //print('Inside dat!= null if');
       List<T> success = [];
       for (var element in data) {
         success.add(jsonDeserialize(element as Map<String, dynamic>));
       }
-      print('Before success;');
+      //print('Before success;');
       return BaseListSuccess<T>(list: success);
     }
     return null;

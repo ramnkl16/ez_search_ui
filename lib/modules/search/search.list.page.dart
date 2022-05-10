@@ -99,34 +99,34 @@ class _SearchPageState extends State<SearchPage> {
     var curIdx = 0;
     var curKey = '';
     var maxLen = qTxtCtrl.text.length;
-    print("for grps maxlen $maxLen");
+    // print("for grps maxlen $maxLen");
     Map<String, String> map = <String, String>{};
     RegExpMatch? item;
     for (item in grps) {
       if (curIdx > 0) {
         var nt = qTxtCtrl.text.substring(curIdx, item.start).trim();
-        print(
-            "for grps if ${item.start},${item.end}[${curKey.substring(0, 3)}]=$nt");
+        // print(
+        //   "for grps if ${item.start},${item.end}[${curKey.substring(0, 3)}]=$nt");
         map[curKey.substring(0, 3).toLowerCase()] = nt;
       }
       curKey = qTxtCtrl.text.substring(item.start, item.end);
       curIdx = item.end;
-      print("for grps  ${item.start} ${item.end}");
+      // print("for grps  ${item.start} ${item.end}");
     }
-    print("regex map grp ${map.keys} ${map.values}");
+    //print("regex map grp ${map.keys} ${map.values}");
     item = grps.last;
-    print(
-        "for grps out side grps $curIdx $maxLen, ${maxLen - item.end}  ${(curIdx < maxLen)}");
+    //print(
+    //   "for grps out side grps $curIdx $maxLen, ${maxLen - item.end},start=${item.start},end=${item.end}, ${(curIdx < maxLen)}");
     if (curIdx < maxLen) {
       curKey = qTxtCtrl.text.substring(item.start, item.end);
-      print("for grps $curKey");
+      // print("for grps $curKey");
       var nt = qTxtCtrl.text.substring(item.end);
-      print("for grps out side grps ${item.start} ${item.end} $nt");
+      //  print("for grps out side grps ${item.start} ${item.end} $nt");
 
       map[curKey.substring(0, 3).toLowerCase()] = nt;
       //qTxtCtrl.text.substring(item.end, maxLen - item.end).trim();
     }
-    print("regex map grp ${map.keys} ${map.values}");
+    //print("regex map grp ${map.keys} ${map.values}");
     return map;
   }
 
@@ -366,6 +366,7 @@ class _SearchPageState extends State<SearchPage> {
     }
     if (hasQueryChanged) _constructQueryFromCtrls();
 
+    //print("Executesearchquery|#369");
     BlocProvider.of<SearchCubit>(context).getAllSearchs(qTxtCtrl.text);
   }
 
@@ -509,7 +510,7 @@ class _SearchPageState extends State<SearchPage> {
         focusNode: nqfn,
         autofocus: true,
         onKey: (RawKeyEvent e) {
-          print("on key%${nqNameCtrl.text}");
+          // print("on key%${nqNameCtrl.text}");
           if ((e.isKeyPressed(LogicalKeyboardKey.numpadEnter) ||
                   e.isKeyPressed(LogicalKeyboardKey.enter)) &&
               nqNameCtrl.text.isNotEmpty) {
@@ -530,7 +531,7 @@ class _SearchPageState extends State<SearchPage> {
     bool isExist = false;
 
     for (var item in rptList) {
-      print("rptName loop $item");
+      //print("rptName loop $item");
       if (item.name == nqNameCtrl.text) {
         isExist = true;
         break;
@@ -583,10 +584,10 @@ class _SearchPageState extends State<SearchPage> {
         sb.write(', +${facetsFilter.keys.join(",+")}');
       }
     }
-    print("whe|keys ${facetsFilter.keys}");
+    //print("whe|keys ${facetsFilter.keys}");
     if (qParsedMap["whe"] == null && facetsFilter.keys.isNotEmpty) {
       var fjoin = facetsFilter.keys.join(",+");
-      print("whenew $fjoin");
+      // print("whenew $fjoin");
       sb.write('where +$fjoin ');
     }
 
@@ -598,14 +599,14 @@ class _SearchPageState extends State<SearchPage> {
       sb.write("sort ${qParsedMap["sor"]} ");
     }
     // if (qParsedMap["lim"] != null) {
-    print("start idnex ${pgIndexCtrl.text}");
+    //print("start idnex ${pgIndexCtrl.text}");
     if (pgIndexCtrl.text.isNotEmpty) {
       sb.write("limit ${_getStartIndex()},${pgSizeCtrl.text} ");
     }
     if (qParsedMap["fac"] != null) {
       sb.write("facets ${qParsedMap["fac"]} ");
     }
-    print("finalquery${sb.toString().trim()}");
+    // print("finalquery${sb.toString().trim()}");
     qTxtCtrl.text = sb.toString().trim();
     hasQueryChanged = false;
     setState(() {});
@@ -634,7 +635,7 @@ class _SearchPageState extends State<SearchPage> {
       }
 
       for (var item in sinceAgoDD.values) {
-        print("since ago| ${clause[1]}| $item");
+        // print("since ago| ${clause[1]}| $item");
         if (item == clause[1]) {
           sinceAgoSelection = item;
           break;
@@ -668,6 +669,7 @@ class _SearchPageState extends State<SearchPage> {
         } else if (state is SearchSuccess) {
           result = state.props;
           _updateCtrlsFromQuery();
+          //print("_updateCtrlsFromQuery|672");
           return _buildSearchGrid();
         } else if (state is SearchEmpty) {
           return Text(AppValues.noRecFoundExpLbl);
@@ -723,21 +725,31 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildSearchGrid() {
+    var fr = result!.facetResult!;
+
+    // print(
+    //    "result!.facetResult != null ${result!.facetResult != null}, firstkey:${fr.keys.first.length}, ${fr.values.length}, isempty ${fr.isEmpty} fr:${result!.facetResult!}, len ${result!.facetResult!.length}, ${fr.keys.length}");
+
     return Padding(
       padding: const EdgeInsets.all(4.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+ 
           SingleChildScrollView(
             padding: EdgeInsets.all(4),
             child: SizedBox(
               width: 300,
+ 
+          if (result!.facetResult!.keys.first.isNotEmpty)
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(4),
+
               child: Column(
                 children: _buildSFGridForFacet(),
                 mainAxisAlignment: MainAxisAlignment.start,
               ),
             ),
-          ),
           Expanded(
             child: Column(children: [
               _buildQueryCtrls(),
@@ -814,7 +826,9 @@ class _SearchPageState extends State<SearchPage> {
   List<Widget> _buildSFGridForFacet() {
     var fr = result!.facetResult!;
     List<Widget> sfgList = [];
+    //print("serchpage|817, $fr");
     var gKeys = fr.keys.toList();
+    // print("serchpage|817, $gKeys");
     if (facetsFilter.isNotEmpty) {
       sfgList.add(Container(
         padding: const EdgeInsets.all(4),
@@ -842,6 +856,7 @@ class _SearchPageState extends State<SearchPage> {
               ],
             )));
       }
+      //print("serchpage|845");
     }
 
     for (var item in gKeys) {
@@ -902,7 +917,7 @@ class _SearchPageState extends State<SearchPage> {
                     var cell = row.getCells()[0];
                     var key =
                         '${cell.columnName}:${(cell.value as String).split("(")[0]}';
-                    print("oncellTap|src $key");
+                    // print("oncellTap|src $key");
                     facetsFilter.remove(key);
                   }
                   hasQueryChanged = true;
@@ -923,7 +938,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildFacetWidgets() {
     var fr = result!.facetResult!;
     var gKeys = fr.keys.toList();
-    print("gkeys $gKeys");
+    // print("gkeys $gKeys");
     List<Container> facetConList = [];
 
     var con = Container(
@@ -946,7 +961,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Row _buildQueryCtrls() {
     //if (kDebugMode) {
-    print("sinceAgoSelection $sinceAgoSelection");
+    // print("sinceAgoSelection $sinceAgoSelection");
     //}
     return Row(children: [
       Expanded(

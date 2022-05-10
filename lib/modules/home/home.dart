@@ -214,10 +214,10 @@ class _HomePageState extends State<HomePage> {
       case 0:
         print('Api configuration');
         dropDownDialog();
-
+ 
         break;
       case 1:
-        print('Data Refresh');
+        // print('Data Refresh');
         UtilFunc.clearHydratedStorage();
         //UtilFunc.clearSharedStorage();
         AutoRouter.of(context).popAndPush(
@@ -232,6 +232,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+ 
+  void _getDropDownItems() {
+    //print("_execSearchQuery() ${curRptQuery.CustomData} ${qTxtCtrl.text}");
+    // print("_getIndexFields() | $dropDownList");
+    BlocProvider.of<MenuCubit>(context).getAllListData(curItem);
+  }
+
+ 
   BlocBuilder<MenuCubit, BaseState> buildNavDrawer() {
     return BlocBuilder<MenuCubit, BaseState>(
       builder: (context, state) {
@@ -242,17 +250,17 @@ class _HomePageState extends State<HomePage> {
         } else if (state is BaseFailure) {
           return Drawer(child: Text(state.errorMsg));
         } else if (state is BaseListSuccess) {
-          print('menu success');
-          print('menu success test');
+          // print('menu success');
+          // print('menu success test');
           LinkedHashMap<String, MenuModel> menus =
               LinkedHashMap<String, MenuModel>();
 
           List<String> addedVals = [];
           // LinkedHashMap.fromIterable(state.menus,
           //     key: (m) => (m as MenuPermission).id, value: (m) => m);
-          print("BuildNavDrawer|element ");
+          //print("BuildNavDrawer|element ");
           for (var element in state.list) {
-            print("BuildNavDrawer|element $element");
+            // print("BuildNavDrawer|element $element");
             menus[element.id] = element;
             if (element.id != 'root') {
               addedVals.add(element.name);
@@ -269,7 +277,7 @@ class _HomePageState extends State<HomePage> {
                   contentPadding: EdgeInsets.only(left: 20),
                   // child: ,
                   onTap: () {
-                    print(AutoRouter.of(context).current.path);
+                    // print(AutoRouter.of(context).current.path);
                     if (index == 0) {
                       AutoRouter.of(context).replaceNamed('user');
                     } else if (index == 1) {
@@ -291,6 +299,7 @@ class _HomePageState extends State<HomePage> {
         print('menu nothing');
         return const Drawer(
           child: Text("No menu is defined"),
+
         );
       },
     );

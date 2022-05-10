@@ -16,7 +16,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     var prefs = await SharedPreferences.getInstance();
     String? tokenTime = prefs.getString(ApiValues.authTokenTime);
     // String? token = prefs.getString(ApiValues.authTokenHeader);
-    print("print token Time $tokenTime");
+    // print("print token Time $tokenTime");
     if (tokenTime != null) {
       DateTime dateTime = DateTime.parse(tokenTime);
       var diff = DateTime.now().difference(dateTime);
@@ -42,7 +42,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
 
   @override
   AuthenticationState? fromJson(Map<String, dynamic> json) {
-    print('Authentication fromJson ' + json.toString());
+    //print('Authentication fromJson ' + json.toString());
     // TODO: implement fromJson
     // throw UnimplementedError();
     if (json[ApiValues.authTokenTime] != null) {

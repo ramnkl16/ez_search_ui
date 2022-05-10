@@ -38,17 +38,17 @@ class LoginCubit extends Cubit<LoginState> {
 
       emit(LoginSuccess(loginResponse: loginResponse));
     } on CustomException catch (e, s) {
-      print('Error: $e');
+      // print('Error: $e');
       print("STACK TRACE: $s");
       emit(LoginFailure(errorMsg: e.toString(), errorCode: e.statusCode));
     } on SocketException catch (e, s) {
       //TODO: Handling socket exception
-      print('Error: $e');
+      // print('Error: $e');
       print("STACK TRACE: $s");
       emit(const LoginFailure(
           errorMsg: AppMessages.noInternetMsg, errorCode: 4));
     } catch (e, s) {
-      print('Error: $e');
+      // print('Error: $e');
       print("STACK TRACE: $s");
       emit(const LoginFailure(
           errorCode: AppValues.unknowErrorCode,

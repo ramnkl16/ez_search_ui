@@ -43,7 +43,7 @@ class _IndexesPageState extends State<IndexesPage> {
         children: [
           BlocBuilder<IndexListCubit, IndexState>(
             builder: (context, state) {
-              print(state.runtimeType);
+              // print(state.runtimeType);
               if (state is IndexLoading) {
                 return const CircularProgressIndicator();
               } else if (state is IndexFailure) {
