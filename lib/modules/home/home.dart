@@ -123,40 +123,10 @@ class _HomePageState extends State<HomePage> {
               ),
               shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(4.0))),
-              content: buildDropDown(),
+              content: ApiConnDropDownWidget(),
             ),
           );
         });
-  }
-
-  Widget buildDropDown() {
-    var prefs = getIt<StorageService>();
-    List<String>? connList;
-    prefs.getApiConnColl().then((value) {
-      connList = value;
-      print("Prefs:Agetapi then calll back ${connList == null}, $connList");
-
-      //   print(
-      //       "Prefs:Agetapi inside async collection ${connList == null}, $connList");
-      // };
-      print("Prefs:Agetapi collection ${connList == null}, $connList");
-      if (connList == null)
-        return CommonDropDown(
-          k: "connList ",
-          uniqueValues: connList!,
-          lblTxt: "Select Index",
-          onChanged: (String? val) async {
-            if (val != null) {
-              print("onchanged $val");
-              curItem = val;
-              var prefs = getIt<StorageService>();
-              await prefs.setApiActiveConn(val);
-            }
-          },
-          ddDataSourceNames: connList!,
-        );
-    });
-    return Text('Went Wrong on connection APi');
   }
 
 //action items for desktop
@@ -266,8 +236,8 @@ class _HomePageState extends State<HomePage> {
     return BlocBuilder<MenuCubit, BaseState>(
       builder: (context, state) {
         if (state is BaseLoading) {
-          return Drawer(
-            child: const CircularProgressIndicator(),
+          return const Drawer(
+            child: CircularProgressIndicator(),
           );
         } else if (state is BaseFailure) {
           return Drawer(child: Text(state.errorMsg));
@@ -319,10 +289,45 @@ class _HomePageState extends State<HomePage> {
           );
         }
         print('menu nothing');
-        return Drawer(
-          child: const Text("No menu is defined"),
+        return const Drawer(
+          child: Text("No menu is defined"),
         );
       },
     );
+  }
+}
+
+class ApiConnDropDownWidget extends StatelessWidget {
+  const ApiConnDropDownWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(context) {
+    return FutureBuilder(
+        future: getApiConnList(),
+        builder: (context, AsyncSnapshot<List<String>?> list) {
+          if (list.hasData) {
+            return CommonDropDown(
+              k: "connList",
+              uniqueValues: list.data!,
+              lblTxt: "Api connection",
+              onChanged: (String? val) async {
+                if (val != null) {
+                  var prefs = getIt<StorageService>();
+                  await prefs.setApiActiveConn(val);
+                }
+              },
+              ddDataSourceNames: list.data!,
+            );
+          } else {
+            return const CircularProgressIndicator();
+          }
+        });
+  }
+
+  Future<List<String>?> getApiConnList() async {
+    var prefs = getIt<StorageService>();
+    List<String>? connList;
+    connList = await prefs.getApiConnColl();
+    return connList;
   }
 }
