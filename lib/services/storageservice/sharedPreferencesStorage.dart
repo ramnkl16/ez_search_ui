@@ -16,28 +16,31 @@ class SharedPreferencesStorage extends StorageService {
   }
 
   @override
-  Future<void> setApiActiveConn(String conn) async {
+  Future<void> setApiActiveConn(String connVal) async {
+    print("setApiActiveConn|$connVal");
     final prefs = await SharedPreferences.getInstance();
     String? oldconn = await getApiActiveConn();
     List<String>? oldConnColl = await getApiConnColl();
 
-    if (oldconn != null && oldconn != conn) {
-      prefs.setString(apiActiveConnKey, conn);
-      var split = conn.split("|");
+    if (oldconn != connVal) {
+      prefs.setString(apiActiveConnKey, connVal);
+      var split = connVal.split("|");
       ApiPaths.baseURL = split[1];
+      print("setApiConnColl(conn);oldcoll conn=$connVal");
       if (oldConnColl == null) {
-        setApiConnColl(conn);
+        setApiConnColl(connVal);
       } else {
         //List<String>? oldColl = await getApiConnColl();
         if (oldConnColl != null) {
           var exist = false;
           for (var item in oldConnColl) {
-            if (item == conn) {
+            if (item == connVal) {
               exist = true;
               break;
             }
           }
-          if (exist == false) setApiConnColl("${oldConnColl.join(',')},$conn");
+          if (exist == false)
+            setApiConnColl("${oldConnColl.join(',')},$connVal");
         }
       }
     }

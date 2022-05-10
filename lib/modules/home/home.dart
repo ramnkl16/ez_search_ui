@@ -214,7 +214,7 @@ class _HomePageState extends State<HomePage> {
       case 0:
         print('Api configuration');
         dropDownDialog();
- 
+
         break;
       case 1:
         // print('Data Refresh');
@@ -232,14 +232,12 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
- 
   void _getDropDownItems() {
     //print("_execSearchQuery() ${curRptQuery.CustomData} ${qTxtCtrl.text}");
     // print("_getIndexFields() | $dropDownList");
     BlocProvider.of<MenuCubit>(context).getAllListData(curItem);
   }
 
- 
   BlocBuilder<MenuCubit, BaseState> buildNavDrawer() {
     return BlocBuilder<MenuCubit, BaseState>(
       builder: (context, state) {
@@ -299,7 +297,6 @@ class _HomePageState extends State<HomePage> {
         print('menu nothing');
         return const Drawer(
           child: Text("No menu is defined"),
-
         );
       },
     );
@@ -307,8 +304,6 @@ class _HomePageState extends State<HomePage> {
 }
 
 class ApiConnDropDownWidget extends StatelessWidget {
-  const ApiConnDropDownWidget({Key? key}) : super(key: key);
-
   @override
   Widget build(context) {
     return FutureBuilder(
@@ -335,8 +330,10 @@ class ApiConnDropDownWidget extends StatelessWidget {
 
   Future<List<String>?> getApiConnList() async {
     var prefs = getIt<StorageService>();
+    print("getApiConnList|testing");
     List<String>? connList;
     connList = await prefs.getApiConnColl();
+    print("getApiConnList|after get api conn $connList");
     return connList;
   }
 }

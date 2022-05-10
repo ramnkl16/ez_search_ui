@@ -735,16 +735,9 @@ class _SearchPageState extends State<SearchPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
- 
-          SingleChildScrollView(
-            padding: EdgeInsets.all(4),
-            child: SizedBox(
-              width: 300,
- 
           if (result!.facetResult!.keys.first.isNotEmpty)
             SingleChildScrollView(
               padding: const EdgeInsets.all(4),
-
               child: Column(
                 children: _buildSFGridForFacet(),
                 mainAxisAlignment: MainAxisAlignment.start,
