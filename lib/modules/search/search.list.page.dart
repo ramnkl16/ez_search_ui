@@ -735,9 +735,16 @@ class _SearchPageState extends State<SearchPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+ 
+          SingleChildScrollView(
+            padding: EdgeInsets.all(4),
+            child: SizedBox(
+              width: 300,
+ 
           if (result!.facetResult!.keys.first.isNotEmpty)
             SingleChildScrollView(
               padding: const EdgeInsets.all(4),
+
               child: Column(
                 children: _buildSFGridForFacet(),
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -875,7 +882,7 @@ class _SearchPageState extends State<SearchPage> {
             child: SfDataGrid(
                 //allowSorting: true,
 
-                isScrollbarAlwaysShown: true,
+                //isScrollbarAlwaysShown: true,
                 columnWidthMode: ColumnWidthMode.auto,
                 source: srcItems,
                 gridLinesVisibility: GridLinesVisibility.both,
@@ -959,7 +966,7 @@ class _SearchPageState extends State<SearchPage> {
     return Row(children: [
       Expanded(
         child: Padding(
-          padding: AppValues.formFieldPadding,
+          padding: const EdgeInsets.all(4),
           child: TextField(
             controller: pgIndexCtrl,
             // keyboardType: TextInputType.multiline,
@@ -980,7 +987,7 @@ class _SearchPageState extends State<SearchPage> {
       ),
       Expanded(
         child: Padding(
-          padding: AppValues.formFieldPadding,
+          padding: const EdgeInsets.all(4),
           child: TextFormField(
             controller: pgSizeCtrl,
             keyboardType: TextInputType.multiline,
@@ -1003,7 +1010,7 @@ class _SearchPageState extends State<SearchPage> {
         child: SizedBox(
           width: 200,
           child: Padding(
-            padding: AppValues.formFieldPadding,
+            padding: const EdgeInsets.all(4),
             child: TextFormField(
               controller: totRecCtrl,
               keyboardType: TextInputType.multiline,
@@ -1017,7 +1024,7 @@ class _SearchPageState extends State<SearchPage> {
       ),
       Expanded(
         child: Padding(
-          padding: AppValues.formFieldPadding,
+          padding: const EdgeInsets.all(4),
           child: TextFormField(
             controller: sinceOnCtrl,
             keyboardType: TextInputType.multiline,
@@ -1038,7 +1045,7 @@ class _SearchPageState extends State<SearchPage> {
       ),
       Expanded(
         child: Padding(
-          padding: AppValues.formFieldPadding,
+          padding: const EdgeInsets.all(4),
           child: TextFormField(
             controller: sincetimeCtrl,
             keyboardType: TextInputType.multiline,
@@ -1059,10 +1066,10 @@ class _SearchPageState extends State<SearchPage> {
       ),
       Expanded(
         child: Padding(
-          padding: AppValues.formFieldPadding,
+          padding: const EdgeInsets.all(4),
           child: CommonDropDown(
               k: "sinceAgo",
-              w: 200,
+              w: 150,
               uniqueValues: sinceAgoDD.values.toList(),
               ddDataSourceNames: sinceAgoDD.values.toList(),
               lblTxt: "Since ago",

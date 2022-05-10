@@ -1,5 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:ez_search_ui/helper/commondropdown.dart';
+import 'package:ez_search_ui/services/serviceLocator.dart';
+import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ez_search_ui/common/base_cubit.dart';
@@ -29,9 +31,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   GlobalKey<NavigatorState> globalKey = GlobalKey();
+
   List<String> list = [];
 
-  List<String> dropDownList = <String>[];
   String curItem = '';
 
   final fn = FocusNode();
@@ -60,19 +62,6 @@ class _HomePageState extends State<HomePage> {
       BlocProvider.of<MenuCubit>(context).getAllListData(ApiPaths.menuSearch);
     }
   }
-
-  String defaultItem = 'Api 1';
-
-  // List of items in our dropdown menu
-  var item = [
-    'Api 1',
-    'Api 2',
-    'Api 3',
-    'Api 4',
-    'Api 5',
-  ];
-
-  Icon customIcon = const Icon(Icons.refresh_outlined);
 
   @override
   Widget build(BuildContext context) {
@@ -121,31 +110,23 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget buildDropDown() {
-    return Column(
-      children: [
-        DropdownButton(
-          elevation: 5,
-          borderRadius: BorderRadius.all(Radius.circular(4)),
-          value: defaultItem,
-          icon: const Icon(Icons.keyboard_arrow_down),
-          isExpanded: true,
-          iconSize: 30.0,
-          style: TextStyle(color: Colors.blue),
-          items: item.map((String items) {
-            return DropdownMenuItem(
-              value: items,
-              child: Text(items),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            setState(() {
-              defaultItem = newValue!;
-            });
-          },
-        ),
-      ],
-    );
+  void dropDownDialog() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Align(
+            alignment: Alignment.topRight,
+            child: AlertDialog(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 50.0,
+                vertical: 280.0,
+              ),
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4.0))),
+              content: ApiConnDropDownWidget(),
+            ),
+          );
+        });
   }
 
 //action items for desktop
@@ -162,9 +143,7 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.api_rounded),
               onPressed: () {
                 setState(() {
-                  if (customIcon.icon == Icons.refresh_outlined) {
-                    selectedItem(context, 0);
-                  }
+                  selectedItem(context, 0);
                 });
               }),
         ),
@@ -174,7 +153,9 @@ class _HomePageState extends State<HomePage> {
           padding: EdgeInsets.all(5),
           height: 35,
           textStyle: TextStyle(
-              fontSize: 15, color: Colors.white, fontWeight: FontWeight.normal),
+              fontSize: 15,
+              color: Color.fromARGB(255, 241, 212, 212),
+              fontWeight: FontWeight.normal),
           message: AppValues.dataRefreshLbl,
           child: IconButton(
               icon: Icon(Icons.refresh_outlined),
@@ -231,9 +212,9 @@ class _HomePageState extends State<HomePage> {
   selectedItem(BuildContext context, int item) {
     switch (item) {
       case 0:
-        // print('Api configuration');
-        buildDropDown();
-
+        print('Api configuration');
+        dropDownDialog();
+ 
         break;
       case 1:
         // print('Data Refresh');
@@ -251,18 +232,20 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+ 
   void _getDropDownItems() {
     //print("_execSearchQuery() ${curRptQuery.CustomData} ${qTxtCtrl.text}");
     // print("_getIndexFields() | $dropDownList");
     BlocProvider.of<MenuCubit>(context).getAllListData(curItem);
   }
 
+ 
   BlocBuilder<MenuCubit, BaseState> buildNavDrawer() {
     return BlocBuilder<MenuCubit, BaseState>(
       builder: (context, state) {
         if (state is BaseLoading) {
-          return Drawer(
-            child: const CircularProgressIndicator(),
+          return const Drawer(
+            child: CircularProgressIndicator(),
           );
         } else if (state is BaseFailure) {
           return Drawer(child: Text(state.errorMsg));
@@ -313,11 +296,47 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         }
-        // print('menu nothing');
-        return Drawer(
-          child: const Text("No menu is defined"),
+        print('menu nothing');
+        return const Drawer(
+          child: Text("No menu is defined"),
+
         );
       },
     );
+  }
+}
+
+class ApiConnDropDownWidget extends StatelessWidget {
+  const ApiConnDropDownWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(context) {
+    return FutureBuilder(
+        future: getApiConnList(),
+        builder: (context, AsyncSnapshot<List<String>?> list) {
+          if (list.hasData) {
+            return CommonDropDown(
+              k: "connList",
+              uniqueValues: list.data!,
+              lblTxt: "Api connection",
+              onChanged: (String? val) async {
+                if (val != null) {
+                  var prefs = getIt<StorageService>();
+                  await prefs.setApiActiveConn(val);
+                }
+              },
+              ddDataSourceNames: list.data!,
+            );
+          } else {
+            return const CircularProgressIndicator();
+          }
+        });
+  }
+
+  Future<List<String>?> getApiConnList() async {
+    var prefs = getIt<StorageService>();
+    List<String>? connList;
+    connList = await prefs.getApiConnColl();
+    return connList;
   }
 }
