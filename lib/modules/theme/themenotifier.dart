@@ -7,7 +7,7 @@ class ThemeNotifier with ChangeNotifier {
   setTheme(ThemeEnum theme) async {
     ezCurThemeName = theme;
     var pref = getIt<StorageService>();
-    pref.setThemeName(theme.toString());
+    await pref.setThemeName(theme.toString());
     notifyListeners();
   }
 }

@@ -40,8 +40,9 @@ class SharedPreferencesStorage extends StorageService {
               break;
             }
           }
-          if (exist == false)
+          if (exist == false) {
             setApiConnColl("${oldConnColl.join(',')},$connVal");
+          }
         }
       }
     }

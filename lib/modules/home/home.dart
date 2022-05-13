@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
         title: Text(AppValues.homePageTitleLbl),
         actions: [
           if (MediaQuery.of(context).size.width >= AppValues.desktopBreakPoint)
-            appBarRightSideActionD(),
+            appBarRightSideActionWiderScreen(),
           if (MediaQuery.of(context).size.width < AppValues.desktopBreakPoint)
             appBarRightSideAction(),
         ],
@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void dropDownDialog() {
+  void _apiConnDropDownDialog() {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -130,7 +130,7 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
-  void themeDropDownDialog() {
+  void _themeDropDownDialog() {
     print('themecolor');
     showDialog(
         context: context,
@@ -174,47 +174,33 @@ class _HomePageState extends State<HomePage> {
   }
 
 //action items for desktop
-  Widget appBarRightSideActionD() {
+  Widget appBarRightSideActionWiderScreen() {
     return Row(
       children: [
-        Tooltip(
-          padding: const EdgeInsets.all(5),
-          height: 35,
-          textStyle: const TextStyle(
-              fontSize: 15, color: Colors.white, fontWeight: FontWeight.normal),
-          message: AppValues.themeLbl,
-          child: InkWell(
-            child: const Text(
-              "Theme",
-              style: TextStyle(fontSize: 14),
-            ),
-            onTap: () {
-              setState(() {
-                selectedItem(context, 0);
-              });
-            },
+        InkWell(
+          child: const Text(
+            "Theme",
+            style: TextStyle(fontSize: 14),
           ),
+          onTap: () {
+            setState(() {
+              _setSelectedItemForRightSideAction(context, 0);
+            });
+          },
         ),
         const SizedBox(
           width: 15,
         ),
-        Tooltip(
-          padding: const EdgeInsets.all(5),
-          height: 35,
-          textStyle: const TextStyle(
-              fontSize: 15, color: Colors.white, fontWeight: FontWeight.normal),
-          message: AppValues.apiConnLbl,
-          child: InkWell(
-            child: const Text(
-              "localhost",
-              style: TextStyle(fontSize: 14),
-            ),
-            onTap: () {
-              setState(() {
-                selectedItem(context, 1);
-              });
-            },
+        InkWell(
+          child: const Text(
+            "localhost",
+            style: TextStyle(fontSize: 14),
           ),
+          onTap: () {
+            setState(() {
+              _setSelectedItemForRightSideAction(context, 1);
+            });
+          },
         ),
         Tooltip(
           //waitDuration: Duration(seconds: 1),
@@ -228,7 +214,7 @@ class _HomePageState extends State<HomePage> {
           message: AppValues.dataRefreshLbl,
           child: IconButton(
               icon: const Icon(Icons.refresh_outlined),
-              onPressed: () => selectedItem(context, 2)),
+              onPressed: () => _setSelectedItemForRightSideAction(context, 2)),
         ),
         Tooltip(
           padding: const EdgeInsets.all(5),
@@ -238,7 +224,7 @@ class _HomePageState extends State<HomePage> {
           message: AppValues.signOutLbl,
           child: IconButton(
               icon: const Icon(Icons.logout),
-              onPressed: () => selectedItem(context, 3)),
+              onPressed: () => _setSelectedItemForRightSideAction(context, 3)),
         ),
       ],
     );
@@ -251,31 +237,16 @@ class _HomePageState extends State<HomePage> {
       itemBuilder: (context) => [
         PopupMenuItem<int>(
           value: 0,
-          child: Row(children: const [
-            InkWell(
-              child: Text(
-                "Theme",
-                style: TextStyle(fontSize: 14, fontStyle: FontStyle.normal),
-              ),
+          child: InkWell(
+            child: Text(
+              ezCurThemeName.toString(),
+              style: TextStyle(fontSize: 14, fontStyle: FontStyle.normal),
             ),
-            //Icon(Icons.api_rounded, color: Colors.black),
-            SizedBox(width: 7),
-            Text(AppValues.themeLbl),
-          ]),
+          ),
         ),
         PopupMenuItem<int>(
           value: 1,
-          child: Row(children: const [
-            InkWell(
-              child: Text(
-                "localhost",
-                style: TextStyle(fontSize: 14, fontStyle: FontStyle.normal),
-              ),
-            ),
-            //Icon(Icons.api_rounded, color: Colors.black),
-            SizedBox(width: 7),
-            Text(AppValues.apiConnLbl),
-          ]),
+          child: InkWell(child: AsyncApiTextWidget()),
         ),
         PopupMenuItem<int>(
           value: 2,
@@ -294,20 +265,17 @@ class _HomePageState extends State<HomePage> {
           ]),
         ),
       ],
-      onSelected: (item) => selectedItem(context, item),
+      onSelected: (item) => _setSelectedItemForRightSideAction(context, item),
     );
   }
 
-  selectedItem(BuildContext context, int item) {
+  _setSelectedItemForRightSideAction(BuildContext context, int item) {
     switch (item) {
       case 0:
-        print('Theme');
-        themeDropDownDialog();
-        print('object');
+        _themeDropDownDialog();
         break;
       case 1:
-        print('Api configuration');
-        dropDownDialog();
+        _apiConnDropDownDialog();
 
         break;
       case 2:
@@ -324,12 +292,6 @@ class _HomePageState extends State<HomePage> {
             LoginRoute(redirectRoute: NavigationPath.homePageBase + "search"));
         break;
     }
-  }
-
-  void _getDropDownItems() {
-    //print("_execSearchQuery() ${curRptQuery.CustomData} ${qTxtCtrl.text}");
-    // print("_getIndexFields() | $dropDownList");
-    BlocProvider.of<MenuCubit>(context).getAllListData(curItem);
   }
 
   BlocBuilder<MenuCubit, BaseState> buildNavDrawer() {
@@ -432,5 +394,38 @@ class ApiConnDropDownWidget extends StatelessWidget {
     connList = await prefs.getApiConnColl();
     print("getApiConnList|after get api conn $connList");
     return connList;
+  }
+}
+
+class AsyncApiTextWidget extends StatelessWidget {
+  @override
+  Widget build(context) {
+    return FutureBuilder(
+        future: getApiActiveName(),
+        builder: (context, AsyncSnapshot<String?> name) {
+          if (name.hasData) {
+            return InkWell(
+                child: Text(name.data!),
+                onTap: () async {
+                  ApiConnDropDownWidget();
+                });
+          } else {
+            return const CircularProgressIndicator();
+          }
+        });
+  }
+
+  Future<String?> getApiActiveName() async {
+    var prefs = getIt<StorageService>();
+    print("getApiConnList|testing");
+    String? connName;
+    connName = await prefs.getApiActiveConn();
+    print("getApiConnList|after get api conn $connName");
+    if (connName != null) {
+      var split = connName.split('|');
+      return Future.value(split[0]);
+    } else {
+      return Future.value(null);
+    }
   }
 }
