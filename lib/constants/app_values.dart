@@ -64,7 +64,8 @@ class AppValues {
   static const String defOprHr = "540-1260";
   // static const double formFieldPaddin
 
-  static const String apiConnLbl = 'Api connection';
+  static const String themeLbl = 'Theme';
+  static const String apiConnLbl = 'Localhost';
   static const String dataRefreshLbl = 'Data Refresh';
   static const String signOutLbl = 'Sign Out';
   static const int desktopBreakPoint = 640;

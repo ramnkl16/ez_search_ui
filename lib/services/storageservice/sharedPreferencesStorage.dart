@@ -8,6 +8,7 @@ class SharedPreferencesStorage extends StorageService {
   static const String nsIDKey = 'nsid';
   static const String apiActiveConnKey = 'apiac';
   static const String apiConnCollKey = 'apicc';
+  static const String themeNameKey = 'themeN';
 
   @override
   Future<String?> getApiActiveConn() async {
@@ -89,5 +90,17 @@ class SharedPreferencesStorage extends StorageService {
   Future<void> setNamespace(String namespace) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString(nsIDKey, namespace);
+  }
+
+  @override
+  Future<void> setThemeName(String themeName) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(themeNameKey, themeName);
+  }
+
+  @override
+  Future<String?> getThemeName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(themeNameKey);
   }
 }
