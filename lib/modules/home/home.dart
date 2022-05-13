@@ -117,10 +117,8 @@ class _HomePageState extends State<HomePage> {
           return Align(
             alignment: Alignment.topRight,
             child: AlertDialog(
-              insetPadding: const EdgeInsets.symmetric(
-                horizontal: 50.0,
-                vertical: 280.0,
-              ),
+              insetPadding: const EdgeInsets.only(
+                  left: 300, top: 20, right: 50, bottom: 1200),
               shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(4.0))),
               content: ApiConnDropDownWidget(),
