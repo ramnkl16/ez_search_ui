@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:ez_search_ui/helper/commondropdown.dart';
-import 'package:ez_search_ui/modules/home/themenotifier.dart';
+import 'package:ez_search_ui/modules/theme/configtheme.dart';
+import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:ez_search_ui/services/serviceLocator.dart';
 import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,6 @@ import 'package:ez_search_ui/modules/menu/menu.model.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.cubit.dart';
 import 'package:ez_search_ui/modules/user/user.cubit.dart';
 import 'package:ez_search_ui/router/appRouter.gr.dart';
-import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -33,7 +33,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   GlobalKey<NavigatorState> globalKey = GlobalKey();
-  late final ThemeModel themeNotifier;
+
   String selectedColor = "Light";
   List<String> themeColors = ["Light", "Dark"];
   List<String> list = [];
@@ -156,8 +156,17 @@ class _HomePageState extends State<HomePage> {
         uniqueValues: themeColors,
         lblTxt: "Theme",
         onChanged: (newVal) {
-          print('buildThemeDropDown');
-          ThemeModel().toggleTheme();
+          print('buildThemeDropDown   $newVal');
+          ThemeEnum theme;
+          switch (newVal) {
+            case "Light":
+              theme = ThemeEnum.White;
+              break;
+            default:
+              theme = ThemeEnum.Dark;
+              break;
+          }
+          getIt<ThemeNotifier>().setTheme(theme);
         },
         ddDataSourceNames: themeColors,
       ),

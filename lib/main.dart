@@ -1,10 +1,7 @@
 import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/constants/api_endpoints.dart';
 import 'package:ez_search_ui/cubit/hydratedCubit.dart';
-import 'package:ez_search_ui/helper/utilfunc.dart';
 import 'package:ez_search_ui/modules/authentication/authentication.cubit.dart';
-import 'package:ez_search_ui/modules/home/home.dart';
-import 'package:ez_search_ui/modules/home/themenotifier.dart';
 import 'package:ez_search_ui/modules/indexes/indexes.cubit.dart';
 import 'package:ez_search_ui/modules/indexfields/indexesFields.cubit.dart';
 import 'package:ez_search_ui/modules/login/login.logic.cubit.dart';
@@ -12,11 +9,11 @@ import 'package:ez_search_ui/modules/login/login.repo.dart';
 import 'package:ez_search_ui/modules/menu/menu.cubit.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.cubit.dart';
 import 'package:ez_search_ui/modules/search/search.cubit.dart';
+import 'package:ez_search_ui/modules/theme/configtheme.dart';
+import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:ez_search_ui/modules/user/user.cubit.dart';
 import 'package:ez_search_ui/router/appRouter.gr.dart';
-
 import 'package:ez_search_ui/services/serviceLocator.dart';
-
 import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -41,10 +38,21 @@ Future<void> main() async {
   //     await SharedPreferences.getInstance());
   setupGetIt();
   var prefs = getIt<StorageService>();
+
   var token = await prefs.getAuthToken();
   if (token != null) isAuthenticated = true;
   var conn = await prefs.getApiActiveConn();
   if (conn != null) apiConn = conn;
+  var themeStr = await prefs.getThemeName();
+  ThemeEnum theme;
+  if (themeStr != null) {
+    for (var element in ThemeEnum.values) {
+      if (element.name.contains(themeStr)) {
+        theme = element;
+        break;
+      }
+    }
+  }
   HydratedBlocOverrides.runZoned(
     () => runApp(MultiBlocProvider(providers: [
       BlocProvider<LoginCubit>(
@@ -97,15 +105,12 @@ class MyApp extends StatelessWidget {
           print(isAuthenticated);
         },
         child: ChangeNotifierProvider(
-          create: (_) => ThemeModel(),
-          child: Consumer<ThemeModel>(
-            builder: (context, ThemeModel themeNotifier, child) {
-              print('buildThemeDropDown, ${themeNotifier.isDark}');
+          create: (_) => getIt<ThemeNotifier>(),
+          child: Consumer<ThemeNotifier>(
+            builder: (context, ThemeNotifier themeNotifier, child) {
               return MaterialApp.router(
                 debugShowCheckedModeBanner: false,
-                theme: themeNotifier.isDark!
-                    ? ThemeData.dark()
-                    : ThemeData.light(),
+                theme: ezThemeData[ezCurThemeName],
 
                 //home: HomePage(),
                 // theme: ThemeData(
