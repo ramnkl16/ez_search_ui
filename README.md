@@ -1,5 +1,6 @@
 # Ez search UI 
-Explore the indexed document which is built using [bleve](http://blevesearch.com/docs/Home/). build a tool which helps to parse and sql query into bleve seqrch api query. ez search golang code is here Source code is available [ez search](https://github.com/ramnkl16/ez-search). Before run your app the rest api ez search code in your local on any server. 
+Explore the indexed document which is built using [bleve](http://blevesearch.com/docs/Home/). It uses rest api to get the data from bleve indexes and helps to parse the sql query which intern returns search result. ez search golang code is here Source code is available [ez search](https://github.com/ramnkl16/ez-search). Before run your app the rest api ez search code in your local on any server. 
+You can run this app cross platform (Windows, Android, IOS, web and linux)
 
 64bit base code encode to be included for each api call. 
 {"u":"duplo@gost.com", "p":"welcome@123","n":"duplo"}
