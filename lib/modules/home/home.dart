@@ -137,6 +137,7 @@ class _HomePageState extends State<HomePage> {
           return Align(
             alignment: Alignment.topRight,
             child: AlertDialog(
+
                 titlePadding: EdgeInsets.zero,
                 contentPadding: EdgeInsets.zero,
                 //insetPadding: const EdgeInsets.only(bottom: 600, left: 1075),
