@@ -1,6 +1,6 @@
 # Ez search UI 
-Explore the indexed document which is built using [bleve](http://blevesearch.com/docs/Home/). It uses rest api to get the data from bleve indexes and helps to parse the sql query which intern returns search result. ez search golang code is here Source code is available [ez search](https://github.com/ramnkl16/ez-search). Before run your app the rest api ez search code in your local on any server. 
-You can run this app cross platform (Windows, Android, IOS, web and linux)
+Explore the indexed document which is built using [bleve](http://blevesearch.com/docs/Home/). It uses rest api to get the data from bleve indexes and helps to parse the sql query which intern returns search result. Ez search golang  source code is available [here](https://github.com/ramnkl16/ez-search). Before run search explorer rest api service should start either from locar or server. 
+By default flutter app can be isntalled any of the platform (Windows, Android, IOS, web and linux)
 
 64bit base code encode to be included for each api call. 
 {"u":"duplo@gost.com", "p":"welcome@123","n":"duplo"}
