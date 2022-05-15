@@ -1,5 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:ez_search_ui/main.dart';
+import 'package:ez_search_ui/modules/theme/configtheme.dart';
+import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:ez_search_ui/services/serviceLocator.dart';
 import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +40,8 @@ class _LoginPageState extends State<LoginPage> {
     domainCtrl = TextEditingController();
     emailOrMobCtrl = TextEditingController();
     pwdCtrl = TextEditingController();
-    connCtrl = TextEditingController(text: apiConn); //apiConn global variable
+    connCtrl = TextEditingController(
+        text: ApiPaths.baseURLName); //apiConn global variable
 
     domainCtrl.text = 'platform';
     emailOrMobCtrl.text = 'admin@gost.com';
@@ -224,8 +227,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  MaterialButton buildSignInButton(BuildContext context) {
-    return MaterialButton(
+  ElevatedButton buildSignInButton(BuildContext context) {
+    return ElevatedButton(
+      // el : ezThemeData[ThemeNotifier.ezCurThemeName].textButtonTheme
       onPressed: () {
         BlocProvider.of<LoginCubit>(context).loginUser(LoginRequest(
           emailOrMobile: emailOrMobCtrl.text,

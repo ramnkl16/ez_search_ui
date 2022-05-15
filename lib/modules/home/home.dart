@@ -23,6 +23,7 @@ import 'package:ez_search_ui/modules/menu/menu.model.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.cubit.dart';
 import 'package:ez_search_ui/modules/user/user.cubit.dart';
 import 'package:ez_search_ui/router/appRouter.gr.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -34,9 +35,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   GlobalKey<NavigatorState> globalKey = GlobalKey();
   late double screenWidth;
-  String selectedColor = "Light";
-  List<String> themeColors = ["Light", "Dark"];
-  List<String> list = [];
 
   String curItem = '';
 
@@ -122,13 +120,12 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            titlePadding: EdgeInsets.zero,
-            contentPadding: EdgeInsets.zero,
-            //insetPadding: const EdgeInsets.only(bottom: 600, left: 1075),
-            shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(4.0))),
-            content: Text('apidialog'), //AsyncApiTextWidget(),
-          );
+              titlePadding: EdgeInsets.zero,
+              contentPadding: EdgeInsets.zero,
+              //insetPadding: const EdgeInsets.only(bottom: 600, left: 1075),
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4.0))),
+              content: ApiConnDropDownWidget());
         });
   }
 
@@ -150,25 +147,40 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
+  List<DropdownMenuItem<String>>? _getThems() {
+    List<DropdownMenuItem<String>>? list = <DropdownMenuItem<String>>[];
+    for (var item in ThemeEnum.values) {
+      print("themeitem ${item.name}");
+      list.add(
+          DropdownMenuItem<String>(value: item.name, child: Text(item.name)));
+    }
+    print("themeitem len${list.length} $list");
+    return list;
+  }
+
   Widget buildThemeDropDown() {
-    return CommonDropDown(
-      k: "selectedColor",
-      uniqueValues: themeColors,
-      lblTxt: "",
-      onChanged: (newVal) {
-        print('buildThemeDropDown   $newVal');
-        ThemeEnum theme;
-        switch (newVal) {
-          case "Light":
-            theme = ThemeEnum.White;
-            break;
-          default:
-            theme = ThemeEnum.Dark;
-            break;
+    return DropdownButton<String>(
+      value: ThemeNotifier.ezCurThemeName.name,
+      icon: const Icon(Icons.arrow_downward),
+      onChanged: (String? val) async {
+        if (val != null) {
+          ThemeEnum theme;
+          switch (val) {
+            case "Light":
+            case "White":
+              theme = ThemeEnum.White;
+              break;
+
+            default:
+              theme = ThemeEnum.Dark;
+              break;
+          }
+          await getIt<ThemeNotifier>().setTheme(theme);
+          dismissDialog(context);
+          setState(() {});
         }
-        getIt<ThemeNotifier>().setTheme(theme);
       },
-      ddDataSourceNames: themeColors,
+      items: _getThems(),
     );
   }
 
@@ -178,7 +190,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         InkWell(
           child: Text(
-            AppValues.themeLbl,
+            ThemeNotifier.ezCurThemeName.name,
             style: const TextStyle(fontSize: 14, fontStyle: FontStyle.normal),
           ),
           onTap: () {
@@ -191,7 +203,7 @@ class _HomePageState extends State<HomePage> {
           width: 15,
         ),
         InkWell(
-          child: AsyncApiTextWidget(),
+          child: Text(ApiPaths.baseURLName.split('|')[0]),
           onTap: () {
             setState(() {
               _setSelectedItemForRightSideAction(context, 1);
@@ -231,15 +243,8 @@ class _HomePageState extends State<HomePage> {
       elevation: 20,
       enabled: true,
       itemBuilder: (context) => [
-        const PopupMenuItem<int>(
-          value: 0,
-          child: InkWell(
-            child: Text(
-              ezCurThemeName.toString(),
-              style: TextStyle(fontSize: 14, fontStyle: FontStyle.normal),
-            ),
-          ),
-        ),
+        PopupMenuItem<int>(
+            value: 0, child: Text(ThemeNotifier.ezCurThemeName.name)),
         PopupMenuItem<int>(
           value: 1,
           child: AsyncApiTextWidget(),
@@ -314,7 +319,9 @@ class _HomePageState extends State<HomePage> {
           for (var element in state.list) {
             // print("BuildNavDrawer|element $element");
             menus[element.id] = element;
-            if (element.id != 'root') {
+            if (element.id == 'root')
+              addedVals.add('search');
+            else {
               addedVals.add(element.name);
             }
           }
@@ -322,7 +329,8 @@ class _HomePageState extends State<HomePage> {
             child: ListView.builder(
               itemBuilder: ((context, index) {
                 return ListTile(
-                  hoverColor: Colors.amber[200],
+                  hoverColor:
+                      ezThemeData[ThemeNotifier.ezCurThemeName]?.hoverColor,
                   //leading: icon != null ? Icon(icon) : Icon(Icons.deck_outlined),
                   title: Text(addedVals[index]),
                   trailing: Icon(Icons.arrow_forward_ios),
@@ -331,12 +339,14 @@ class _HomePageState extends State<HomePage> {
                   onTap: () {
                     // print(AutoRouter.of(context).current.path);
                     if (index == 0) {
-                      AutoRouter.of(context).replaceNamed('user');
+                      AutoRouter.of(context).replaceNamed('search');
                     } else if (index == 1) {
-                      AutoRouter.of(context).replaceNamed('query');
+                      AutoRouter.of(context).replaceNamed('user');
                     } else if (index == 2) {
-                      AutoRouter.of(context).replaceNamed('indexes');
+                      AutoRouter.of(context).replaceNamed('query');
                     } else if (index == 3) {
+                      AutoRouter.of(context).replaceNamed('indexes');
+                    } else if (index == 4) {
                       AutoRouter.of(context).replaceNamed('fields');
                     }
 
@@ -357,6 +367,10 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+dismissDialog(BuildContext context) {
+  Navigator.pop(context);
+}
+
 class ApiConnDropDownWidget extends StatelessWidget {
   @override
   Widget build(context) {
@@ -366,17 +380,22 @@ class ApiConnDropDownWidget extends StatelessWidget {
         builder: (context, AsyncSnapshot<List<String>?> list) {
           if (list.hasData) {
             print('apiconnection list.hasData');
-            return CommonDropDown(
-              k: "connList",
-              uniqueValues: list.data!,
-              lblTxt: "Localhost",
+            return DropdownButton<String>(
+              value: ApiPaths.baseURLName,
+              icon: const Icon(Icons.arrow_downward),
               onChanged: (String? val) async {
                 if (val != null) {
                   var prefs = getIt<StorageService>();
                   await prefs.setApiActiveConn(val);
+                  dismissDialog(context);
                 }
               },
-              ddDataSourceNames: list.data!,
+              items: list.data!.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
             );
           } else {
             print('apiconnection else');
@@ -407,8 +426,6 @@ class AsyncApiTextWidget extends StatelessWidget {
               child: InkWell(
                   child: Text(name.data!),
                   onTap: () async {
-                    print('apiconnection ');
-                    Text('apiconnection');
                     ApiConnDropDownWidget();
                   }),
             );

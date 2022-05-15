@@ -7,7 +7,8 @@ class LoginProvider {
   Future<http.Response> loginUser(LoginRequest loginRequest) {
     //print("LoginProvider|start");
     // print(loginRequest.toJson());
-    // print("${ApiPaths.baseURL} ${ApiPaths.authLogin}");
+    print("${ApiPaths.baseURL} ${ApiPaths.authLogin}");
+
     Uri url = Uri.http(
       ApiPaths.baseURL,
       ApiPaths.authLogin,

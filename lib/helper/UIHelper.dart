@@ -1,5 +1,7 @@
 //import 'dart:html';
 
+import 'package:ez_search_ui/modules/theme/configtheme.dart';
+import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:flutter/material.dart';
 import 'package:ez_search_ui/constants/app_colors.dart';
 import 'package:ez_search_ui/constants/app_constant.dart';
@@ -188,10 +190,11 @@ class UIHelper {
             ? AppValues.loginWidgetWidth
             : screenWidth - 32,
         decoration: BoxDecoration(
-          shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.all(Radius.circular(15)),
-          color: color,
-        ),
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+            color: ezThemeData[ThemeNotifier.ezCurThemeName]
+                ?.colorScheme
+                .tertiary),
         child: Center(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -233,24 +236,25 @@ class UIHelper {
       columnName: columnName,
 
       label: Container(
-        decoration: BoxDecoration(
-          color: Color.fromARGB(240, 205, 208, 211),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.white,
-              blurRadius: 8,
-              // spreadRadius: UIConstants.shadowSpreadRadius,
-              // offset:
-              //     Offset(0.0, 1.0), // shadow direction: bottom right
-            )
-          ],
-        ),
+        //decoration: BoxDecoration(
+        //   color:
+        //       ezThemeData[ThemeNotifier.ezCurThemeName.name]?.primaryColorLight,
+        //   // // boxShadow:  [
+        //   // //   BoxShadow(
+        //   // //      color: ezThemeData[ThemeNotifier.ezCurThemeName.name]?.primaryColorLight.value,
+        //   // //     blurRadius: 8,
+        //   // //     // spreadRadius: UIConstants.shadowSpreadRadius,
+        //   // //     // offset:
+        //   // //     //     Offset(0.0, 1.0), // shadow direction: bottom right
+        //   // //   )
+        //   // ],
+        // ),
         padding: const EdgeInsets.all(4.0),
         alignment: Alignment.centerLeft,
-        child: Text(
+        child: SelectableText(
           capitalize(label),
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          //overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -305,7 +309,7 @@ class UIHelper {
             trailing: IconButton(
               icon: Icon(Icons.cancel_outlined),
               iconSize: 34,
-              color: Colors.red,
+              //color: Colors.red,
               onPressed: onPressed ?? () => Navigator.pop(context),
             ),
           ),
@@ -313,7 +317,7 @@ class UIHelper {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Divider(
               thickness: 2,
-              color: Colors.black,
+              // color: Colors.black,
             ),
           )
         ],

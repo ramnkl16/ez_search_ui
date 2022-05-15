@@ -42,13 +42,23 @@ Future<void> main() async {
   var token = await prefs.getAuthToken();
   if (token != null) isAuthenticated = true;
   var conn = await prefs.getApiActiveConn();
-  if (conn != null) apiConn = conn;
+  if (conn != null) {
+    ApiPaths.baseURLName = conn;
+    var split = conn.split('|');
+    if (split.length > 1)
+      ApiPaths.baseURL = split[1];
+    else
+      ApiPaths.baseURL = split[0];
+  }
   var themeStr = await prefs.getThemeName();
+  print(
+      "theme|$themeStr|${ThemeNotifier.ezCurThemeName} token=$token conn=$conn");
   ThemeEnum theme;
   if (themeStr != null) {
     for (var element in ThemeEnum.values) {
       if (element.name.contains(themeStr)) {
         theme = element;
+        ThemeNotifier.ezCurThemeName = theme;
         break;
       }
     }
@@ -85,9 +95,9 @@ Future<void> main() async {
 }
 
 bool isAuthenticated = false;
-String apiConn = ApiPaths.baseURL.startsWith('127.')
-    ? 'localhost|${ApiPaths.baseURL}'
-    : ApiPaths.baseURL;
+// String apiConn = ApiPaths.baseURL.startsWith('127.')
+//     ? 'localhost|${ApiPaths.baseURL}'
+//     : ApiPaths.baseURL;
 
 class MyApp extends StatelessWidget {
   MyApp({Key? key}) : super(key: key);
@@ -110,7 +120,7 @@ class MyApp extends StatelessWidget {
             builder: (context, ThemeNotifier themeNotifier, child) {
               return MaterialApp.router(
                 debugShowCheckedModeBanner: false,
-                theme: ezThemeData[ezCurThemeName],
+                theme: ezThemeData[ThemeNotifier.ezCurThemeName],
 
                 //home: HomePage(),
                 // theme: ThemeData(
