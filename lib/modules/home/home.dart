@@ -33,7 +33,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   GlobalKey<NavigatorState> globalKey = GlobalKey();
-
+  late double screenWidth;
   String selectedColor = "Light";
   List<String> themeColors = ["Light", "Dark"];
   List<String> list = [];
@@ -70,6 +70,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
@@ -116,16 +117,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _apiConnDropDownDialog() {
+    print('apidropdown');
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             titlePadding: EdgeInsets.zero,
             contentPadding: EdgeInsets.zero,
-            insetPadding: const EdgeInsets.only(bottom: 600, left: 1075),
+            //insetPadding: const EdgeInsets.only(bottom: 600, left: 1075),
             shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(4.0))),
-            content: Container(height: 60, child: ApiConnDropDownWidget()),
+            content: Text('apidialog'), //AsyncApiTextWidget(),
           );
         });
   }
@@ -135,41 +137,38 @@ class _HomePageState extends State<HomePage> {
     showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-              titlePadding: EdgeInsets.zero,
-              contentPadding: EdgeInsets.zero,
-              insetPadding: const EdgeInsets.only(bottom: 600, left: 1075),
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(4.0))),
-              content: Container(
-                height: 60,
-                child: buildThemeDropDown(),
-              ));
+          return Align(
+            alignment: Alignment.topRight,
+            child: AlertDialog(
+                titlePadding: EdgeInsets.zero,
+                contentPadding: EdgeInsets.zero,
+                //insetPadding: const EdgeInsets.only(bottom: 600, left: 1075),
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(4.0))),
+                content: buildThemeDropDown()),
+          );
         });
   }
 
-  Container buildThemeDropDown() {
-    return Container(
-      height: 60,
-      child: CommonDropDown(
-        k: "selectedColor",
-        uniqueValues: themeColors,
-        lblTxt: "Theme",
-        onChanged: (newVal) {
-          print('buildThemeDropDown   $newVal');
-          ThemeEnum theme;
-          switch (newVal) {
-            case "Light":
-              theme = ThemeEnum.White;
-              break;
-            default:
-              theme = ThemeEnum.Dark;
-              break;
-          }
-          getIt<ThemeNotifier>().setTheme(theme);
-        },
-        ddDataSourceNames: themeColors,
-      ),
+  Widget buildThemeDropDown() {
+    return CommonDropDown(
+      k: "selectedColor",
+      uniqueValues: themeColors,
+      lblTxt: "",
+      onChanged: (newVal) {
+        print('buildThemeDropDown   $newVal');
+        ThemeEnum theme;
+        switch (newVal) {
+          case "Light":
+            theme = ThemeEnum.White;
+            break;
+          default:
+            theme = ThemeEnum.Dark;
+            break;
+        }
+        getIt<ThemeNotifier>().setTheme(theme);
+      },
+      ddDataSourceNames: themeColors,
     );
   }
 
@@ -178,9 +177,9 @@ class _HomePageState extends State<HomePage> {
     return Row(
       children: [
         InkWell(
-          child: const Text(
-            "Theme",
-            style: TextStyle(fontSize: 14),
+          child: Text(
+            AppValues.themeLbl,
+            style: const TextStyle(fontSize: 14, fontStyle: FontStyle.normal),
           ),
           onTap: () {
             setState(() {
@@ -192,10 +191,7 @@ class _HomePageState extends State<HomePage> {
           width: 15,
         ),
         InkWell(
-          child: const Text(
-            "localhost",
-            style: TextStyle(fontSize: 14),
-          ),
+          child: AsyncApiTextWidget(),
           onTap: () {
             setState(() {
               _setSelectedItemForRightSideAction(context, 1);
@@ -235,7 +231,7 @@ class _HomePageState extends State<HomePage> {
       elevation: 20,
       enabled: true,
       itemBuilder: (context) => [
-        PopupMenuItem<int>(
+        const PopupMenuItem<int>(
           value: 0,
           child: InkWell(
             child: Text(
@@ -246,7 +242,7 @@ class _HomePageState extends State<HomePage> {
         ),
         PopupMenuItem<int>(
           value: 1,
-          child: InkWell(child: AsyncApiTextWidget()),
+          child: AsyncApiTextWidget(),
         ),
         PopupMenuItem<int>(
           value: 2,
@@ -270,11 +266,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   _setSelectedItemForRightSideAction(BuildContext context, int item) {
+    print('item ${item}');
     switch (item) {
       case 0:
         _themeDropDownDialog();
         break;
       case 1:
+        print('apidropdown');
         _apiConnDropDownDialog();
 
         break;
@@ -362,26 +360,26 @@ class _HomePageState extends State<HomePage> {
 class ApiConnDropDownWidget extends StatelessWidget {
   @override
   Widget build(context) {
+    print('apiconnection');
     return FutureBuilder(
         future: getApiConnList(),
         builder: (context, AsyncSnapshot<List<String>?> list) {
           if (list.hasData) {
-            return Container(
-              height: 60,
-              child: CommonDropDown(
-                k: "connList",
-                uniqueValues: list.data!,
-                lblTxt: "Localhost",
-                onChanged: (String? val) async {
-                  if (val != null) {
-                    var prefs = getIt<StorageService>();
-                    await prefs.setApiActiveConn(val);
-                  }
-                },
-                ddDataSourceNames: list.data!,
-              ),
+            print('apiconnection list.hasData');
+            return CommonDropDown(
+              k: "connList",
+              uniqueValues: list.data!,
+              lblTxt: "Localhost",
+              onChanged: (String? val) async {
+                if (val != null) {
+                  var prefs = getIt<StorageService>();
+                  await prefs.setApiActiveConn(val);
+                }
+              },
+              ddDataSourceNames: list.data!,
             );
           } else {
+            print('apiconnection else');
             return const CircularProgressIndicator();
           }
         });
@@ -404,11 +402,16 @@ class AsyncApiTextWidget extends StatelessWidget {
         future: getApiActiveName(),
         builder: (context, AsyncSnapshot<String?> name) {
           if (name.hasData) {
-            return InkWell(
-                child: Text(name.data!),
-                onTap: () async {
-                  ApiConnDropDownWidget();
-                });
+            return Container(
+              width: 50,
+              child: InkWell(
+                  child: Text(name.data!),
+                  onTap: () async {
+                    print('apiconnection ');
+                    Text('apiconnection');
+                    ApiConnDropDownWidget();
+                  }),
+            );
           } else {
             return const CircularProgressIndicator();
           }
