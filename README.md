@@ -18,15 +18,8 @@ Any code editor I prefer [VS code](https://code.visualstudio.com/docs/setup/setu
 check out main branch 
 When you run directly vs code with modify [launch.json](https://github.com/ramnkl16/ez_search_ui/blob/main/.vscode/launch.json) as per your target device. by default configured for chrome web running port 8080
 
+Build app and push in windowns [app stores](https://docs.flutter.dev/deployment/windows) 
+windows app available here [windows](https://github.com/ramnkl16/ez_search_ui/tree/main/app/windows) you can down load and run app
 
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
