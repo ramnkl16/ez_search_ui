@@ -7,4 +7,6 @@ abstract class StorageService {
   Future<void> setApiActiveConn(String connVal);
   Future<List<String>?> getApiConnColl();
   Future<void> setApiConnColl(String connColl);
+  Future<String?> getThemeName();
+  Future<void> setThemeName(String themeName);
 }

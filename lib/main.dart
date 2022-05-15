@@ -1,7 +1,6 @@
 import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/constants/api_endpoints.dart';
 import 'package:ez_search_ui/cubit/hydratedCubit.dart';
-import 'package:ez_search_ui/helper/utilfunc.dart';
 import 'package:ez_search_ui/modules/authentication/authentication.cubit.dart';
 import 'package:ez_search_ui/modules/indexes/indexes.cubit.dart';
 import 'package:ez_search_ui/modules/indexfields/indexesFields.cubit.dart';
@@ -10,9 +9,10 @@ import 'package:ez_search_ui/modules/login/login.repo.dart';
 import 'package:ez_search_ui/modules/menu/menu.cubit.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.cubit.dart';
 import 'package:ez_search_ui/modules/search/search.cubit.dart';
+import 'package:ez_search_ui/modules/theme/configtheme.dart';
+import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:ez_search_ui/modules/user/user.cubit.dart';
 import 'package:ez_search_ui/router/appRouter.gr.dart';
-
 import 'package:ez_search_ui/services/serviceLocator.dart';
 import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/foundation.dart';
@@ -20,9 +20,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   //await Hive.initFlutter(); //init hive not yet implmented
   Global.initializeProperties(); //init platform related properies
   final storage = await HydratedStorage.build(
@@ -36,10 +38,31 @@ Future<void> main() async {
   //     await SharedPreferences.getInstance());
   setupGetIt();
   var prefs = getIt<StorageService>();
+
   var token = await prefs.getAuthToken();
   if (token != null) isAuthenticated = true;
   var conn = await prefs.getApiActiveConn();
-  if (conn != null) apiConn = conn;
+  if (conn != null) {
+    ApiPaths.baseURLName = conn;
+    var split = conn.split('|');
+    if (split.length > 1)
+      ApiPaths.baseURL = split[1];
+    else
+      ApiPaths.baseURL = split[0];
+  }
+  var themeStr = await prefs.getThemeName();
+  print(
+      "theme|$themeStr|${ThemeNotifier.ezCurThemeName} token=$token conn=$conn");
+  ThemeEnum theme;
+  if (themeStr != null) {
+    for (var element in ThemeEnum.values) {
+      if (element.name.contains(themeStr)) {
+        theme = element;
+        ThemeNotifier.ezCurThemeName = theme;
+        break;
+      }
+    }
+  }
   HydratedBlocOverrides.runZoned(
     () => runApp(MultiBlocProvider(providers: [
       BlocProvider<LoginCubit>(
@@ -72,9 +95,9 @@ Future<void> main() async {
 }
 
 bool isAuthenticated = false;
-String apiConn = ApiPaths.baseURL.startsWith('127.')
-    ? 'localhost|${ApiPaths.baseURL}'
-    : ApiPaths.baseURL;
+// String apiConn = ApiPaths.baseURL.startsWith('127.')
+//     ? 'localhost|${ApiPaths.baseURL}'
+//     : ApiPaths.baseURL;
 
 class MyApp extends StatelessWidget {
   MyApp({Key? key}) : super(key: key);
@@ -87,31 +110,40 @@ class MyApp extends StatelessWidget {
     print("myapp build");
 
     return BlocListener<AuthenticationCubit, AuthenticationState>(
-      listener: (context, state) {
-        print('Auth listnener called');
-        print(isAuthenticated);
-      },
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-            // dialogTheme: DialogTheme(),
-            appBarTheme: const AppBarTheme(color: Color(0xFF13B9FF)),
-            colorScheme: ColorScheme.fromSwatch(
-                // accentColor: AppColors.calendarHeaderColor,
-                ),
-            // textTheme: TextTheme()
-            inputDecorationTheme: InputDecorationTheme(
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(5))))),
+        listener: (context, state) {
+          print('Auth listnener called');
+          print(isAuthenticated);
+        },
+        child: ChangeNotifierProvider(
+          create: (_) => getIt<ThemeNotifier>(),
+          child: Consumer<ThemeNotifier>(
+            builder: (context, ThemeNotifier themeNotifier, child) {
+              return MaterialApp.router(
+                debugShowCheckedModeBanner: false,
+                theme: ezThemeData[ThemeNotifier.ezCurThemeName],
 
-        routerDelegate: _appRouter.delegate(
-            //initialRoutes: [if (isAuthenticated) HomeRoute() else LoginRoute()]
-            ),
-        routeInformationParser: _appRouter.defaultRouteParser(),
-        // backButtonDispatcher:
-        //     BeamerBackButtonDispatcher(delegate: routerDelegate),
-        // home: const CounterPage(),
-      ),
-    );
+                //home: HomePage(),
+                // theme: ThemeData(
+                //     // dialogTheme: DialogTheme(),
+                //     appBarTheme: const AppBarTheme(color: Color(0xFF13B9FF)),
+                //     colorScheme: ColorScheme.fromSwatch(
+                //         // accentColor: AppColors.calendarHeaderColor,
+                //         ),
+                //     // textTheme: TextTheme()
+                //     inputDecorationTheme: InputDecorationTheme(
+                //         border: OutlineInputBorder(
+                //             borderRadius: BorderRadius.all(Radius.circular(5))))),
+
+                routerDelegate: _appRouter.delegate(
+                    //initialRoutes: [if (isAuthenticated) HomeRoute() else LoginRoute()]
+                    ),
+                routeInformationParser: _appRouter.defaultRouteParser(),
+                // backButtonDispatcher:
+                //     BeamerBackButtonDispatcher(delegate: routerDelegate),
+                // home: const CounterPage(),
+              );
+            },
+          ),
+        ));
   }
 }

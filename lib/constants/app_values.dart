@@ -51,7 +51,7 @@ class AppValues {
     return screenWidth > 900 ? screenWidth / 2 - 32 : screenWidth;
   }
 
-  static const EdgeInsetsGeometry formFieldPadding = EdgeInsets.all(8);
+  static const EdgeInsetsGeometry formFieldPadding = EdgeInsets.all(4);
 
   static const Color formCancelBtnColor = Colors.blueGrey;
 
@@ -59,12 +59,12 @@ class AppValues {
 
   static const trackColor = Color.fromARGB(242, 233, 11, 11);
 
-  static const double sfGridPadding = 8;
+  static const double sfGridPadding = 4;
 
   static const String defOprHr = "540-1260";
   // static const double formFieldPaddin
 
-  static const String apiConnLbl = 'Api connection';
+  static const String themeLbl = 'Theme';
   static const String dataRefreshLbl = 'Data Refresh';
   static const String signOutLbl = 'Sign Out';
   static const int desktopBreakPoint = 640;

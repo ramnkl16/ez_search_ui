@@ -8,6 +8,7 @@ class SharedPreferencesStorage extends StorageService {
   static const String nsIDKey = 'nsid';
   static const String apiActiveConnKey = 'apiac';
   static const String apiConnCollKey = 'apicc';
+  static const String themeNameKey = 'themeN';
 
   @override
   Future<String?> getApiActiveConn() async {
@@ -39,8 +40,9 @@ class SharedPreferencesStorage extends StorageService {
               break;
             }
           }
-          if (exist == false)
+          if (exist == false) {
             setApiConnColl("${oldConnColl.join(',')},$connVal");
+          }
         }
       }
     }
@@ -70,6 +72,7 @@ class SharedPreferencesStorage extends StorageService {
   @override
   Future<String?> getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
+    print("theme |getAuthToken| ${prefs.getKeys()}");
     return prefs.getString(authTokenHeaderKey);
   }
 
@@ -89,5 +92,17 @@ class SharedPreferencesStorage extends StorageService {
   Future<void> setNamespace(String namespace) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString(nsIDKey, namespace);
+  }
+
+  @override
+  Future<void> setThemeName(String themeName) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(themeNameKey, themeName);
+  }
+
+  @override
+  Future<String?> getThemeName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(themeNameKey);
   }
 }
