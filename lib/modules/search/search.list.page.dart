@@ -4,13 +4,11 @@ import 'dart:math';
 
 import 'package:ez_search_ui/modules/theme/configtheme.dart';
 import 'package:ez_search_ui/modules/theme/themenotifier.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ez_search_ui/modules/search/facet.ds.dart';
 import 'package:ez_search_ui/modules/search/search.ds.dart';
-import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 import 'package:ez_search_ui/common/base_cubit.dart';
@@ -18,7 +16,6 @@ import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/helper/UIHelper.dart';
 import 'package:ez_search_ui/helper/commondropdown.dart';
-import 'package:ez_search_ui/helper/utilfunc.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.cubit.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.model.dart';
 import 'package:ez_search_ui/modules/search/SearchResult.dart';
@@ -313,8 +310,8 @@ class _SearchPageState extends State<SearchPage> {
 //It will create downloadable object
     final url = html.Url.createObjectUrlFromBlob(blob);
 //It will create anchor to download the file
-    final DateFormat format = DateFormat("yyy-MM-dd-hh-mm-ss");
-    final String formated = format.format(DateTime.now());
+    //final DateFormat format = DateFormat("yyy-MM-dd-hh-mm-ss");
+    final String formated = DateTime.now().toString();
     final anchor = html.document.createElement('a') as html.AnchorElement
       ..href = url
       ..style.display = 'none'

@@ -8,18 +8,7 @@ import 'package:ez_search_ui/constants/app_constant.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/constants/hex_color.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'dart:io';
-import 'package:syncfusion_flutter_datagrid_export/export.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' show Workbook, Worksheet;
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-
-import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
-import 'dart:convert';
-import 'package:universal_html/html.dart' show AnchorElement;
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
 
@@ -48,31 +37,6 @@ class UIHelper {
     );
   }
 
-  Future<void> exportDataGridToPdf(GlobalKey<SfDataGridState> key) async {
-    final PdfDocument document = key.currentState!.exportToPdfDocument();
-
-    final List<int> bytes = document.save();
-    File('DataGrid.pdf').writeAsBytes(bytes);
-    document.dispose();
-
-    File('DataGrid.pdf').writeAsBytes(bytes, flush: true);
-
-    if (kIsWeb) {
-      AnchorElement(
-          href:
-              'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}')
-        ..setAttribute('download', 'DataGrid.pdf')
-        ..click();
-    } else {
-      final String path = (await getApplicationDocumentsDirectory()).path;
-      final String fileName =
-          Platform.isWindows ? '$path\\DataGrid.pdf' : '$path/DataGrid.pdf';
-      final File file = File(fileName);
-      await file.writeAsBytes(bytes, flush: true);
-      OpenFile.open(fileName);
-    }
-  }
-
   static Widget buildXlsWidget(String label) {
     return TextButton.icon(
       //style: TextButton.styleFrom(primary: Color(0xff1D6F42)),
@@ -94,31 +58,6 @@ class UIHelper {
         style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
       ),
     );
-  }
-
-  Future<void> createExcel(key) async {
-    final Workbook workbook = key.currentState!.exportToExcelWorkbook();
-    final Worksheet worksheet = workbook.worksheets[0];
-    key.currentState!.exportToExcelWorksheet(worksheet);
-    final List<int> bytes = workbook.saveAsStream();
-    workbook.dispose();
-
-    File('DataGrid.xlsx').writeAsBytes(bytes, flush: true);
-
-    if (kIsWeb) {
-      AnchorElement(
-          href:
-              'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}')
-        ..setAttribute('download', 'DataGrid.xlsx')
-        ..click();
-    } else {
-      final String path = (await getApplicationDocumentsDirectory()).path;
-      final String fileName =
-          Platform.isWindows ? '$path\\DataGrid.xlxs' : '$path/DataGrid.xlsx';
-      final File file = File(fileName);
-      await file.writeAsBytes(bytes, flush: true);
-      OpenFile.open(fileName);
-    }
   }
 
   static Widget buildColorDSWidget(String clrCode) {
