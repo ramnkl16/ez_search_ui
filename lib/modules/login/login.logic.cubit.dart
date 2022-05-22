@@ -26,12 +26,13 @@ class LoginCubit extends Cubit<LoginState> {
     emit(LoginLoading());
     final StorageService ss = getIt<StorageService>();
     try {
+      await ss.setApiActiveConn(loginRequest.connString);
       LoginResponse loginResponse =
           await loginRepository.authenticateUser(loginRequest);
       SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
       await ss.setAuthToken(loginResponse.authToken);
       await ss.setNamespace(loginRequest.nsCode);
-      await ss.setApiActiveConn(loginRequest.connString);
+      //await ss.setApiActiveConn(loginRequest.connString);
 
       // await sharedPrefs.setString(
       //     ApiValues.authTokenHeader, loginResponse.authToken);

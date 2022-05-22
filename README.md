@@ -18,6 +18,9 @@ Any code editor I prefer [VS code](https://code.visualstudio.com/docs/setup/setu
 check out main branch 
 When you run directly vs code with modify [launch.json](https://github.com/ramnkl16/ez_search_ui/blob/main/.vscode/launch.json) as per your target device. by default configured for chrome web running port 8080
 
+
+build web out put with base href to deploy as sub app `flutter build web  --release --base-href /web-ui/`
+
 Build app and push in windowns [app stores](https://docs.flutter.dev/deployment/windows) 
 windows app available here [windows](https://github.com/ramnkl16/ez_search_ui/tree/main/app/windows) you can down load and run app
 

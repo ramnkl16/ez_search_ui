@@ -47,6 +47,7 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController qTxtCtrl = TextEditingController();
   final TextEditingController nqNameCtrl = TextEditingController();
   final TextEditingController pgIndexCtrl = TextEditingController();
+  final TextEditingController searchWordCtrl = TextEditingController();
   final TextEditingController pgSizeCtrl = TextEditingController();
   final TextEditingController sincetimeCtrl = TextEditingController();
   final TextEditingController sinceOnCtrl = TextEditingController();
@@ -94,7 +95,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Map<String, String> _parseQuery() {
-    qTxtCtrl.text = curRptQuery.CustomData.trim(); //qTxtCtrl.text.trim();
+    //qTxtCtrl.text = curRptQuery.CustomData.trim(); //qTxtCtrl.text.trim();
     var grps = regEx.allMatches(qTxtCtrl.text.toLowerCase());
     var curIdx = 0;
     var curKey = '';
@@ -127,6 +128,7 @@ class _SearchPageState extends State<SearchPage> {
       //qTxtCtrl.text.substring(item.end, maxLen - item.end).trim();
     }
     //print("regex map grp ${map.keys} ${map.values}");
+
     return map;
   }
 
@@ -167,7 +169,7 @@ class _SearchPageState extends State<SearchPage> {
                 children: [
                   IconButton(
                       onPressed: () {
-                        _showMaterialDialog();
+                        _showSaveDialog();
                       },
                       icon: Icon(Icons.save_as_outlined),
                       tooltip: "Save as"),
@@ -184,8 +186,8 @@ class _SearchPageState extends State<SearchPage> {
                       onPressed: () {
                         exportToCsvDialog();
                       },
-                      icon: Icon(Icons.import_export_outlined),
-                      tooltip: "Csv export"),
+                      icon: const Icon(Icons.download_rounded),
+                      tooltip: "Csv Download"),
                   if (state is BaseLoading) CircularProgressIndicator(),
                   if (state is RptQueryFailure) Text(state.errorMsg),
                 ],
@@ -335,13 +337,13 @@ class _SearchPageState extends State<SearchPage> {
           if ((e.isKeyPressed(LogicalKeyboardKey.numpadEnter) ||
                   e.isKeyPressed(LogicalKeyboardKey.enter)) &&
               qTxtCtrl.text.isNotEmpty) {
-            if (isQueryModifiedByUser) {
-              curRptQuery.CustomData = qTxtCtrl.text;
-              isQueryModifiedByUser = false;
-            }
+            // if (isQueryModifiedByUser) {
+            //   curRptQuery.CustomData = qTxtCtrl.text;
+            //   isQueryModifiedByUser = false;
+            // }
 
             //isQueryModifiedByUser = false;
-            _execSearchQuery();
+            //_execSearchQuery();
             //print("keypressed ${e.data.logicalKey}  ${e.character}");
           }
         },
@@ -360,13 +362,15 @@ class _SearchPageState extends State<SearchPage> {
 
   void _execSearchQuery() {
     //print("_execSearchQuery() ${curRptQuery.CustomData} ${qTxtCtrl.text}");
-    if (isQueryModifiedByUser) {
-      curRptQuery.CustomData = qTxtCtrl.text;
-      isQueryModifiedByUser = false;
-    }
+    // if (isQueryModifiedByUser) {
+    //   curRptQuery.CustomData = qTxtCtrl.text;
+    //   isQueryModifiedByUser = false;
+    // }
     if (hasQueryChanged) _constructQueryFromCtrls();
 
-    //print("Executesearchquery|#369");
+    print("Executesearchquery|#369 ${qTxtCtrl.text}");
+    //_constructQueryFromCtrls();
+
     BlocProvider.of<SearchCubit>(context).getAllSearchs(qTxtCtrl.text);
   }
 
@@ -477,7 +481,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  void _showMaterialDialog() {
+  void _showSaveDialog() {
     showDialog(
         context: context,
         builder: (context) {
@@ -582,17 +586,28 @@ class _SearchPageState extends State<SearchPage> {
     if (qParsedMap["fro"] != null) {
       sb.write('from ${qParsedMap["fro"]} ');
     }
-    if (qParsedMap["whe"] != null) {
-      sb.write('where ${qParsedMap["whe"]} ');
-      if (facetsFilter.keys.isNotEmpty) {
-        sb.write(', +${facetsFilter.keys.join(",+")}');
+    var wClause = qParsedMap["whe"];
+    var commaChar = ',';
+    if (wClause == null) {
+      wClause = '';
+      commaChar = '';
+    }
+
+    var facetKeys = '';
+    if (facetsFilter.keys.isNotEmpty) {
+      facetKeys = facetsFilter.keys.join(",+");
+      if (!wClause.contains(facetKeys)) {
+        wClause = '$wClause$commaChar +$facetKeys';
+        commaChar = ',';
       }
     }
-    //print("whe|keys ${facetsFilter.keys}");
-    if (qParsedMap["whe"] == null && facetsFilter.keys.isNotEmpty) {
-      var fjoin = facetsFilter.keys.join(",+");
-      // print("whenew $fjoin");
-      sb.write('where +$fjoin ');
+    if (searchWordCtrl.text.isNotEmpty) {
+      if (!wClause.contains(searchWordCtrl.text)) {
+        wClause = '$wClause$commaChar ${searchWordCtrl.text}';
+      }
+    }
+    if (wClause.length > 0) {
+      sb.write('where $wClause ');
     }
 
     if (sinceOnCtrl.text.isNotEmpty) {
@@ -611,8 +626,11 @@ class _SearchPageState extends State<SearchPage> {
       sb.write("facets ${qParsedMap["fac"]} ");
     }
     // print("finalquery${sb.toString().trim()}");
+
     qTxtCtrl.text = sb.toString().trim();
-    hasQueryChanged = false;
+    print("Executesearchquery|${qTxtCtrl.text}");
+    // hasQueryChanged = false;
+    // curRptQuery.CustomData = qTxtCtrl.text;
     setState(() {});
   }
 
@@ -676,7 +694,7 @@ class _SearchPageState extends State<SearchPage> {
           //print("_updateCtrlsFromQuery|672");
           return _buildSearchGrid();
         } else if (state is SearchEmpty) {
-          return Text(AppValues.noRecFoundExpLbl);
+          return const Text(AppValues.noRecFoundExpLbl);
         }
         return const Text("Select a query to view data.");
       },
@@ -705,8 +723,11 @@ class _SearchPageState extends State<SearchPage> {
                       if (item.id == val) {
                         curRptQuery = item;
                         qTxtCtrl.text = item.CustomData;
-                        //fn.requestFocus();
-                        _execSearchQuery();
+                        searchWordCtrl.text = '';
+                        _updateCtrlsFromQuery();
+                        facetsFilter.clear();
+                        fn.requestFocus();
+                        BlocProvider.of<SearchCubit>(context).clearResultGrid();
                       }
                     }
                   }
@@ -724,8 +745,12 @@ class _SearchPageState extends State<SearchPage> {
 
   int _getMaxPagination() {
     int maxCount = 0;
-    if (result != null)
-      (result!.total / int.parse(pgSizeCtrl.text)).floorToDouble().toInt();
+    if (result != null) {
+      maxCount =
+          (result!.total / int.parse(pgSizeCtrl.text)).floorToDouble().toInt();
+    }
+    print(
+        "Executesearchquery|result!.total=${result!.total} / ${pgSizeCtrl.text}");
     return maxCount;
   }
 
@@ -967,6 +992,27 @@ class _SearchPageState extends State<SearchPage> {
     // print("sinceAgoSelection $sinceAgoSelection");
     //}
     return Row(children: [
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: TextField(
+            controller: searchWordCtrl,
+            // keyboardType: TextInputType.multiline,
+            // textInputAction: TextInputAction.none,
+            onChanged: (val) {
+              hasQueryChanged = true;
+              isQueryModifiedByUser = true;
+            },
+            onTap: () {
+              if (hasQueryChanged) {
+                _constructQueryFromCtrls();
+              }
+            },
+            decoration: const InputDecoration(labelText: "Search term"),
+            //readOnly: true,
+          ),
+        ),
+      ),
       Expanded(
         child: Padding(
           padding: const EdgeInsets.all(4),

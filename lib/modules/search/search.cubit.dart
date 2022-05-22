@@ -18,6 +18,10 @@ class NavigationSearchCubit extends SearchCubit {}
 class SearchCubit extends Cubit<SearchState> {
   SearchCubit() : super(SearchInitial());
 
+  Future<void> clearResultGrid() async {
+    emit(SearchEmpty());
+  }
+
   Future<void> getAllSearchs(String req) async {
     emit(SearchLoading());
     try {
