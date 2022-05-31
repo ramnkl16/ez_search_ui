@@ -29,7 +29,7 @@ class _IndexesPageState extends State<IndexesPage> {
 
   @override
   void initState() {
-    BlocProvider.of<IndexListCubit>(context).getIndexes();
+    BlocProvider.of<IndexListCubit>(context).getIndexes('');
 
     isWebOrDesktop = Global.isWeb || Global.isDesktop;
     _dgController.selectedIndex = 0;
@@ -41,10 +41,9 @@ class _IndexesPageState extends State<IndexesPage> {
     return Scaffold(
       body: Column(
         children: [
-          _buildMenu(),
           BlocBuilder<IndexListCubit, IndexState>(
             builder: (context, state) {
-              print(state.runtimeType);
+              // print(state.runtimeType);
               if (state is IndexLoading) {
                 return const CircularProgressIndicator();
               } else if (state is IndexFailure) {
@@ -62,67 +61,6 @@ class _IndexesPageState extends State<IndexesPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildMenu() {
-    return Row(
-      children: [
-        TextButton.icon(
-            onPressed: () async {
-              if (_dgController.selectedIndex == -1)
-                _dgController.selectedIndex = 0;
-              // var r =
-              //     await showEditPageDialog(list[_dgController.selectedIndex]);
-              setState(() {});
-            },
-            icon: const Icon(Icons.edit),
-            label: const Text(MenuConstants.edit)),
-        TextButton.icon(
-            onPressed: () async {
-              var m = createNewModel();
-
-              // var r = await showEditPageDialog(m);
-              // print(m);
-              // if (r != null) {
-              //   list.add(m);
-              //   if (BlocProvider.of<IndexesListCubit>(context).state
-              //       is BaseEmpty) {
-              //     BlocProvider.of<IndexesListCubit>(context)
-              //         .emitInitialSuccess(list);
-              //   } else {
-              //     setState(() {});
-              //   }
-              // }
-            },
-            icon: const Icon(Icons.add),
-            label: const Text(MenuConstants.newVal)),
-        TextButton.icon(
-            onPressed: () {
-              var sn = list[_dgController.selectedIndex];
-              var rest = showDialog<String>(
-                context: context,
-                builder: (BuildContext context) => AlertDialog(
-                  title: Text("Delete Indexes $sn"),
-                  content:
-                      const Text('After deletion you can not retrive it back!'),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, 'Cancel'),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, 'OK'),
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-              //perform delete api and remove item from the list
-            },
-            icon: const Icon(Icons.delete),
-            label: const Text(MenuConstants.deleteVal))
-      ],
     );
   }
 
@@ -150,35 +88,38 @@ class _IndexesPageState extends State<IndexesPage> {
   Widget _buildIndexesGrid() {
     return Padding(
       padding: const EdgeInsets.all(AppValues.sfGridPadding),
-      child: SfDataGrid(
-          allowSorting: true,
-          source: IndexesDataGridSource(list),
-          selectionMode: SelectionMode.single,
-          allowPullToRefresh: true,
-          navigationMode: GridNavigationMode.cell,
-          controller: _dgController,
+      child: Container(
+        height: 480,
+        child: SfDataGrid(
+            allowSorting: true,
+            source: IndexesDataGridSource(list),
+            selectionMode: SelectionMode.single,
+            allowPullToRefresh: true,
+            navigationMode: GridNavigationMode.cell,
+            controller: _dgController,
 
-          // onSelectionChanging: (addedRows, removedRows) {
+            // onSelectionChanging: (addedRows, removedRows) {
 
-          // },
-          onCellTap: (DataGridCellDetails details) async {
-            _dgController.selectedIndex = details.rowColumnIndex.rowIndex - 1;
-            // if (details.rowColumnIndex.columnIndex == 0) {
-            //   await showEditPageDialog(list[_dgController.selectedIndex]);
-            //   setState(() {});
-            //   _dgController.selectedIndex = details.rowColumnIndex.rowIndex;
-            // }
-          },
-          columnWidthMode: isWebOrDesktop
-              ? (isWebOrDesktop && Global.isMobileResolution)
-                  ? ColumnWidthMode.none
-                  : ColumnWidthMode.fill
-              : isLandscapeInMobileView
-                  ? ColumnWidthMode.fill
-                  : ColumnWidthMode.none,
-          columns: <GridColumn>[
-            UIHelper.buildGridColumn(label: 'Name', columnName: 'name'),
-          ]),
+            // },
+            onCellTap: (DataGridCellDetails details) async {
+              _dgController.selectedIndex = details.rowColumnIndex.rowIndex - 1;
+              // if (details.rowColumnIndex.columnIndex == 0) {
+              //   await showEditPageDialog(list[_dgController.selectedIndex]);
+              //   setState(() {});
+              //   _dgController.selectedIndex = details.rowColumnIndex.rowIndex;
+              // }
+            },
+            columnWidthMode: isWebOrDesktop
+                ? (isWebOrDesktop && Global.isMobileResolution)
+                    ? ColumnWidthMode.none
+                    : ColumnWidthMode.fill
+                : isLandscapeInMobileView
+                    ? ColumnWidthMode.fill
+                    : ColumnWidthMode.none,
+            columns: <GridColumn>[
+              UIHelper.buildGridColumn(label: 'Name', columnName: 'name'),
+            ]),
+      ),
     );
   }
 

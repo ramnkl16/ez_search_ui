@@ -1,3 +1,5 @@
+import 'package:ez_search_ui/services/serviceLocator.dart';
+import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:http/http.dart' as http;
 import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/constants/api_endpoints.dart';
@@ -11,15 +13,15 @@ class RestClient {
   //fetching token directly from shared resource
   static Future<http.Response> exeReq(RequestType method, String endPoint,
       [dynamic body, Map<String, String>? queryParams]) async {
-    print("exereq $endPoint");
+    print("exereq baseurl=${ApiPaths.baseURL}$endPoint");
     Uri uri = Uri.http(ApiPaths.baseURL, endPoint, queryParams);
 
-    //String token, nsId = "";
-    var token = await RepoHelper.getValue(ApiValues.authTokenHeader);
-    var nsId = await RepoHelper.getValue(SharedPrefKeys.nsID);
+    var prefs = getIt<StorageService>();
+    var token = await prefs.getAuthToken();
+    var nsId = await prefs.getNamespace();
     // var isSet =
-    print('Inside restapiclient $endPoint');
-    print(nsId);
+    //print('Inside restapi client $endPoint, token=$token, nsid=$nsId');
+    // print(nsId);
     // print("Token is" + token!);
     if (token == null || nsId == null) {
       // return;
@@ -27,7 +29,7 @@ class RestClient {
       throw UnauthorizedException(message: AppValues.unAuthCubitMsg);
     }
 
-    print("${ApiPaths.baseURL} $endPoint :authtokent $token");
+    // print("${ApiPaths.baseURL} $endPoint :authtokent $token");
     switch (method) {
       case RequestType.GET:
         return http.get(uri, headers: {
@@ -36,7 +38,7 @@ class RestClient {
           "Access-Control-Allow-Origin": "*"
         });
       case RequestType.POST:
-        print(body);
+        // print(body);
         return http.post(uri,
             headers: {
               ApiValues.authTokenHeader: token,
@@ -65,7 +67,7 @@ class RestClient {
       ApiPaths.baseURL,
       endPoint,
     );
-    print("${ApiPaths.baseURL} $endPoint :authtokent $authToken");
+    // print("${ApiPaths.baseURL} $endPoint :authtokent $authToken");
     switch (method) {
       case RequestType.GET:
         return http.get(uri, headers: {

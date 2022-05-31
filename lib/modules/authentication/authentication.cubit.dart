@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:ez_search_ui/main.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,16 +9,14 @@ import 'package:ez_search_ui/constants/app_values.dart';
 part 'authentication.state.dart';
 
 class AuthenticationCubit extends Cubit<AuthenticationState> {
-  AuthenticationCubit(this.isAuthenticated) : super(AuthenticationInitial());
-
-  bool isAuthenticated;
+  AuthenticationCubit() : super(AuthenticationInitial());
 
   Future<void> checkAuthenticationStatus() async {
     // emit(Authentica)
     var prefs = await SharedPreferences.getInstance();
     String? tokenTime = prefs.getString(ApiValues.authTokenTime);
     // String? token = prefs.getString(ApiValues.authTokenHeader);
-    print("print token Time $tokenTime");
+    // print("print token Time $tokenTime");
     if (tokenTime != null) {
       DateTime dateTime = DateTime.parse(tokenTime);
       var diff = DateTime.now().difference(dateTime);
@@ -43,7 +42,7 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
 
   @override
   AuthenticationState? fromJson(Map<String, dynamic> json) {
-    print('Authentication fromJson ' + json.toString());
+    //print('Authentication fromJson ' + json.toString());
     // TODO: implement fromJson
     // throw UnimplementedError();
     if (json[ApiValues.authTokenTime] != null) {

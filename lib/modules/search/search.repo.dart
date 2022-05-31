@@ -1,12 +1,12 @@
 import 'dart:convert';
 
+import 'package:ez_search_ui/services/serviceLocator.dart';
+import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/common/rest_api_client.dart';
 import 'package:ez_search_ui/constants/api_endpoints.dart';
-import 'package:ez_search_ui/constants/api_values.dart';
-import 'package:ez_search_ui/constants/app_constant.dart';
 import 'package:ez_search_ui/constants/app_messages.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/exceptions/custom_exception.model.dart';
@@ -18,10 +18,11 @@ class SearchRepo {
   final RepoHelper repositoryHelper = RepoHelper();
   Future<SearchResult> getSearchData(String req) async {
     req = '{"q":"$req"}';
-    print("SearchCubit|getAllSearchs $req");
-    var token = await RepoHelper.getValue(ApiValues.authTokenHeader);
-    var nsId = await RepoHelper.getValue(SharedPrefKeys.nsID);
-    print("getsearchData| token $token nsId $nsId");
+    //print("SearchCubit|getAllSearchs $req");
+    var prefs = getIt<StorageService>();
+    var token = await prefs.getAuthToken();
+    var nsId = await prefs.getNamespace();
+    // print("getsearchData| token $token nsId $nsId");
     if (token == null || nsId == null) {
       Global.pushLoginUnAuth();
       throw UnauthorizedException(message: AppValues.unAuthCubitMsg);
@@ -34,7 +35,7 @@ class SearchRepo {
       SearchResult searchResult = SearchResult();
 
       // Map<String, dynamic> allFields = {};
-
+      print("repo#40");
       List<Map<String, dynamic>> logsMaps = [];
       Map<String, Map<String, dynamic>> facetsData = {};
       if (resBody['resultRow'] != null) {
@@ -44,6 +45,7 @@ class SearchRepo {
         });
       }
 
+      print("repo#50");
       if (resBody['facetResult'] != null) {
         var v = resBody['facetResult'] as Map<String, dynamic>;
         v.forEach((titleKey, titleValue) {
@@ -75,19 +77,20 @@ class SearchRepo {
       searchResult.total = resBody['total'];
       searchResult.took = resBody['took'];
       searchResult.fields = <String>[];
+      //print("repo#82 ${resBody["fields"]}");
       for (var f in resBody["fields"]) {
+        //print("repo#84 $f");
         searchResult.fields?.add(f);
       }
-
 //        searchResult.status = Status.fromJson(resBody['status']);
-      //print("#81| ${searchResult.toJson()} ");
+
       return searchResult;
       // } else {
       //   return 'Status Code: ${response.statusCode} \nError: ${response.body}';
     }
     //Response code is not successful
     repositoryHelper.handleAPIErrors(response);
-
+    //print("repo#95| ");
     throw Exception(AppMessages.unknownErrMsg);
   }
 }

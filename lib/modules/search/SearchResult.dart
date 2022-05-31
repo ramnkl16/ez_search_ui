@@ -75,3 +75,55 @@ class Status {
     return data;
   }
 }
+
+// class IndexSchema {
+//   String? name;
+//   String? type;
+//   String? dn;
+
+//   IndexSchema({this.name, this.type, this.dn});
+
+//   IndexSchema.fromJson(Map<String, dynamic> json) {
+//     name = json['name'];
+//     type = json['type'];
+//     dn = json['dn'];
+//   }
+// }
+
+class IndexSchemaModel {
+  String name;
+  String type;
+  String dn;
+
+  IndexSchemaModel({
+    required this.name,
+    required this.type,
+    required this.dn,
+  });
+
+  static Map<String, dynamic> toMap(IndexSchemaModel us) {
+    return {
+      'type': us.type,
+      'name': us.name,
+      'dn': us.dn,
+    };
+  }
+
+  factory IndexSchemaModel.fromMap(Map<String, dynamic> map) {
+    return IndexSchemaModel(
+      type: map['type'] ?? '',
+      name: map['name'] ?? '',
+      dn: map['dn'] ?? '',
+    );
+  }
+
+  String toJson() => json.encode(toMap(this));
+
+  factory IndexSchemaModel.fromJson(String source) =>
+      IndexSchemaModel.fromMap(json.decode(source));
+
+  @override
+  String toString() {
+    return 'IndexSchemaModel( type: $type,  name: $name,  dn: $dn, )';
+  }
+}

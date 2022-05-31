@@ -1,25 +1,21 @@
 //import 'dart:html';
 
+import 'package:ez_search_ui/modules/theme/configtheme.dart';
+import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:flutter/material.dart';
 import 'package:ez_search_ui/constants/app_colors.dart';
 import 'package:ez_search_ui/constants/app_constant.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/constants/hex_color.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'dart:io';
-import 'package:syncfusion_flutter_datagrid_export/export.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' show Workbook, Worksheet;
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
-import 'package:path_provider/path_provider.dart';
-import 'package:open_file/open_file.dart';
-import 'dart:convert';
-import 'package:universal_html/html.dart' show AnchorElement;
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:syncfusion_flutter_pdf/pdf.dart';
-
-String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
+String capitalize(String s) {
+  if (s.isEmpty) {
+    return s;
+  }
+  return s[0].toUpperCase() + s.substring(1);
+}
 
 class UIHelper {
   static Widget buildPdfWidget(String label) {
@@ -46,31 +42,6 @@ class UIHelper {
     );
   }
 
-  Future<void> exportDataGridToPdf(GlobalKey<SfDataGridState> key) async {
-    final PdfDocument document = key.currentState!.exportToPdfDocument();
-
-    final List<int> bytes = document.save();
-    File('DataGrid.pdf').writeAsBytes(bytes);
-    document.dispose();
-
-    File('DataGrid.pdf').writeAsBytes(bytes, flush: true);
-
-    if (kIsWeb) {
-      AnchorElement(
-          href:
-              'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}')
-        ..setAttribute('download', 'DataGrid.pdf')
-        ..click();
-    } else {
-      final String path = (await getApplicationDocumentsDirectory()).path;
-      final String fileName =
-          Platform.isWindows ? '$path\\DataGrid.pdf' : '$path/DataGrid.pdf';
-      final File file = File(fileName);
-      await file.writeAsBytes(bytes, flush: true);
-      OpenFile.open(fileName);
-    }
-  }
-
   static Widget buildXlsWidget(String label) {
     return TextButton.icon(
       //style: TextButton.styleFrom(primary: Color(0xff1D6F42)),
@@ -92,31 +63,6 @@ class UIHelper {
         style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
       ),
     );
-  }
-
-  Future<void> createExcel(key) async {
-    final Workbook workbook = key.currentState!.exportToExcelWorkbook();
-    final Worksheet worksheet = workbook.worksheets[0];
-    key.currentState!.exportToExcelWorksheet(worksheet);
-    final List<int> bytes = workbook.saveAsStream();
-    workbook.dispose();
-
-    File('DataGrid.xlsx').writeAsBytes(bytes, flush: true);
-
-    if (kIsWeb) {
-      AnchorElement(
-          href:
-              'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}')
-        ..setAttribute('download', 'DataGrid.xlsx')
-        ..click();
-    } else {
-      final String path = (await getApplicationDocumentsDirectory()).path;
-      final String fileName =
-          Platform.isWindows ? '$path\\DataGrid.xlxs' : '$path/DataGrid.xlsx';
-      final File file = File(fileName);
-      await file.writeAsBytes(bytes, flush: true);
-      OpenFile.open(fileName);
-    }
   }
 
   static Widget buildColorDSWidget(String clrCode) {
@@ -147,7 +93,7 @@ class UIHelper {
   static Widget buildRegGridElemt(String val) {
     return Container(
       padding: const EdgeInsets.all(4.0),
-      child: Text(
+      child: SelectableText(
         val,
         textAlign: TextAlign.left,
       ),
@@ -188,10 +134,11 @@ class UIHelper {
             ? AppValues.loginWidgetWidth
             : screenWidth - 32,
         decoration: BoxDecoration(
-          shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.all(Radius.circular(15)),
-          color: color,
-        ),
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+            color: ezThemeData[ThemeNotifier.ezCurThemeName]
+                ?.colorScheme
+                .tertiary),
         child: Center(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -231,28 +178,18 @@ class UIHelper {
 
       // columnWidthMode: ColumnWidthMode.fill,
       columnName: columnName,
+      minimumWidth: label.length * 12, //todo implement proper way
+
+      //columnWidthMode: ColumnWidthMode.fitByCellValue,
 
       label: Container(
-        decoration: BoxDecoration(
-          color: Color.fromARGB(240, 205, 208, 211),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.white,
-              blurRadius: 8,
-              // spreadRadius: UIConstants.shadowSpreadRadius,
-              // offset:
-              //     Offset(0.0, 1.0), // shadow direction: bottom right
-            )
-          ],
-        ),
-        padding: const EdgeInsets.all(4.0),
-        alignment: Alignment.centerLeft,
-        child: Text(
-          capitalize(label),
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ),
+          padding: const EdgeInsets.all(4.0),
+          alignment: Alignment.centerLeft,
+          child: SelectableText(
+            capitalize(label),
+            // overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          )),
     );
   }
 
@@ -305,7 +242,7 @@ class UIHelper {
             trailing: IconButton(
               icon: Icon(Icons.cancel_outlined),
               iconSize: 34,
-              color: Colors.red,
+              //color: Colors.red,
               onPressed: onPressed ?? () => Navigator.pop(context),
             ),
           ),
@@ -313,7 +250,7 @@ class UIHelper {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Divider(
               thickness: 2,
-              color: Colors.black,
+              // color: Colors.black,
             ),
           )
         ],

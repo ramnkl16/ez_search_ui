@@ -1,13 +1,18 @@
 //Auto code generated from xml definition 2022-05-03 19:54:23.8582221 -0400 EDT
 //indexFields
 import 'package:ez_search_ui/common/base_cubit.dart';
+
 import 'package:ez_search_ui/constants/app_constant.dart';
+import 'package:ez_search_ui/helper/commondropdown.dart';
 import 'package:ez_search_ui/modules/indexes/indexes.cubit.dart';
+import 'package:ez_search_ui/modules/indexes/indexes.model.dart';
 import 'package:ez_search_ui/modules/indexfields/indexesFields.cubit.dart';
 import 'package:ez_search_ui/modules/indexfields/indexfields.ds.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/modules/indexfields/indexfields.model.dart';
+import 'package:ez_search_ui/modules/rptquery/rptquery.cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ez_search_ui/common/global.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -25,13 +30,17 @@ class _indexFieldsPageState extends State<IndexFieldsPage> {
   final DataGridController _dgController = DataGridController();
   List<String> list = [];
 
+  List<String> indexList = <String>[];
+  String curIndex = '';
+
+  final fn = FocusNode();
+
   /// Determine to decide whether the device in landscape or in portrait.
   late bool isLandscapeInMobileView;
 
   @override
   void initState() {
-    BlocProvider.of<IndexFieldListCubit>(context)
-        .getIndexeFields('data/b2b.bleve');
+    BlocProvider.of<IndexListCubit>(context).getIndexes('');
 
     isWebOrDesktop = Global.isWeb || Global.isDesktop;
     _dgController.selectedIndex = 0;
@@ -43,7 +52,11 @@ class _indexFieldsPageState extends State<IndexFieldsPage> {
     return Scaffold(
       body: Column(
         children: [
-          _buildMenu(),
+          Text(
+            'Field List',
+            textAlign: TextAlign.center,
+          ),
+          Expanded(child: _indexDropDownBlocBuilder()),
           BlocBuilder<IndexFieldListCubit, IndexState>(
             builder: (context, state) {
               print(state.runtimeType);
@@ -67,64 +80,36 @@ class _indexFieldsPageState extends State<IndexFieldsPage> {
     );
   }
 
-  Widget _buildMenu() {
-    return Row(
-      children: [
-        TextButton.icon(
-            onPressed: () async {
-              if (_dgController.selectedIndex == -1)
-                _dgController.selectedIndex = 0;
-              // var r =
-              //     await showEditPageDialog(list[_dgController.selectedIndex]);
-              setState(() {});
-            },
-            icon: const Icon(Icons.edit),
-            label: const Text(MenuConstants.edit)),
-        TextButton.icon(
-            onPressed: () async {
-              var m = createNewModel();
-
-              // var r = await showEditPageDialog(m);
-              // print(m);
-              // if (r != null) {
-              //   list.add(m);
-              //   if (BlocProvider.of<IndexFieldListCubit>(context).state
-              //       is BaseEmpty) {
-              //     BlocProvider.of<IndexFieldListCubit>(context)
-              //         .emitInitialSuccess(list);
-              //   } else {
-              //     setState(() {});
-              //   }
-              // }
-            },
-            icon: const Icon(Icons.add),
-            label: const Text(MenuConstants.newVal)),
-        TextButton.icon(
-            onPressed: () {
-              var sn = list[_dgController.selectedIndex];
-              var rest = showDialog<String>(
-                context: context,
-                builder: (BuildContext context) => AlertDialog(
-                  title: Text("Delete indexFields $sn"),
-                  content:
-                      const Text('After deletion you can not retrive it back!'),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, 'Cancel'),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, 'OK'),
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-              //perform delete api and remove item from the list
-            },
-            icon: const Icon(Icons.delete),
-            label: const Text(MenuConstants.deleteVal))
-      ],
+  BlocBuilder<IndexListCubit, IndexState> _indexDropDownBlocBuilder() {
+    return BlocBuilder<IndexListCubit, IndexState>(
+      builder: (context, state) {
+        if (state is IndexSuccess) {
+          indexList = state.list as List<String>;
+        }
+        if (state is BaseLoading) {
+          return const CircularProgressIndicator();
+        } else {
+          return Column(
+            children: [
+              CommonDropDown(
+                k: "indexList",
+                uniqueValues: indexList,
+                lblTxt: "Select Index",
+                onChanged: (String? val) {
+                  if (val != null) {
+                    print("onchanged $val");
+                    curIndex = val;
+                    _getIndexFields();
+                  }
+                },
+                ddDataSourceNames: indexList,
+              ),
+              if (state is IndexFailure) Text(state.errorMsg),
+              if (state is BaseEmpty) Text(AppValues.noRecFoundExpLbl)
+            ],
+          );
+        }
+      },
     );
   }
 
@@ -152,35 +137,38 @@ class _indexFieldsPageState extends State<IndexFieldsPage> {
   Widget _buildindexFieldsGrid() {
     return Padding(
       padding: EdgeInsets.all(AppValues.sfGridPadding),
-      child: SfDataGrid(
-          allowSorting: true,
-          source: indexFieldsDataGridSource(list),
-          selectionMode: SelectionMode.single,
-          allowPullToRefresh: true,
-          navigationMode: GridNavigationMode.cell,
-          controller: _dgController,
+      child: Container(
+        height: 450,
+        child: SfDataGrid(
+            allowSorting: true,
+            source: indexFieldsDataGridSource(list),
+            selectionMode: SelectionMode.single,
+            allowPullToRefresh: true,
+            navigationMode: GridNavigationMode.cell,
+            controller: _dgController,
 
-          // onSelectionChanging: (addedRows, removedRows) {
+            // onSelectionChanging: (addedRows, removedRows) {
 
-          // },
-          onCellTap: (DataGridCellDetails details) async {
-            _dgController.selectedIndex = details.rowColumnIndex.rowIndex - 1;
-            // if (details.rowColumnIndex.columnIndex == 0) {
-            //   await showEditPageDialog(list[_dgController.selectedIndex]);
-            //   setState(() {});
-            //   _dgController.selectedIndex = details.rowColumnIndex.rowIndex;
-            // }
-          },
-          columnWidthMode: isWebOrDesktop
-              ? (isWebOrDesktop && Global.isMobileResolution)
-                  ? ColumnWidthMode.none
-                  : ColumnWidthMode.fill
-              : isLandscapeInMobileView
-                  ? ColumnWidthMode.fill
-                  : ColumnWidthMode.none,
-          columns: <GridColumn>[
-            UIHelper.buildGridColumn(label: 'Name', columnName: 'name'),
-          ]),
+            // },
+            onCellTap: (DataGridCellDetails details) async {
+              _dgController.selectedIndex = details.rowColumnIndex.rowIndex - 1;
+              // if (details.rowColumnIndex.columnIndex == 0) {
+              //   await showEditPageDialog(list[_dgController.selectedIndex]);
+              //   setState(() {});
+              //   _dgController.selectedIndex = details.rowColumnIndex.rowIndex;
+              // }
+            },
+            columnWidthMode: isWebOrDesktop
+                ? (isWebOrDesktop && Global.isMobileResolution)
+                    ? ColumnWidthMode.none
+                    : ColumnWidthMode.fill
+                : isLandscapeInMobileView
+                    ? ColumnWidthMode.fill
+                    : ColumnWidthMode.none,
+            columns: <GridColumn>[
+              UIHelper.buildGridColumn(label: 'Name', columnName: 'name'),
+            ]),
+      ),
     );
   }
 
@@ -195,5 +183,11 @@ class _indexFieldsPageState extends State<IndexFieldsPage> {
     return IndexFieldModel(
       name: '',
     );
+  }
+
+  void _getIndexFields() {
+    //print("_execSearchQuery() ${curRptQuery.CustomData} ${qTxtCtrl.text}");
+    print("_getIndexFields() | $curIndex");
+    BlocProvider.of<IndexFieldListCubit>(context).getIndexeFields(curIndex);
   }
 }

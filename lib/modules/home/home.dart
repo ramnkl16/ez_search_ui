@@ -1,4 +1,9 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:ez_search_ui/helper/commondropdown.dart';
+import 'package:ez_search_ui/modules/theme/configtheme.dart';
+import 'package:ez_search_ui/modules/theme/themenotifier.dart';
+import 'package:ez_search_ui/services/serviceLocator.dart';
+import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ez_search_ui/common/base_cubit.dart';
@@ -18,6 +23,7 @@ import 'package:ez_search_ui/modules/menu/menu.model.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.cubit.dart';
 import 'package:ez_search_ui/modules/user/user.cubit.dart';
 import 'package:ez_search_ui/router/appRouter.gr.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -28,13 +34,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   GlobalKey<NavigatorState> globalKey = GlobalKey();
+  late double screenWidth;
+
+  String curItem = '';
+
+  final fn = FocusNode();
+
   @override
   void initState() {
     BlocProvider.of<AuthenticationCubit>(context).checkAuthenticationStatus();
-    print("default connection ${UtilFunc.getDefaultConnection()}");
+    //print("default connection ${UtilFunc.getDefaultConnection()}");
 
     Global.loadBlocMetaDatas(context);
     performInitOperatons();
+
     // }
     super.initState();
   }
@@ -55,13 +68,15 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         centerTitle: true,
         title: Text(AppValues.homePageTitleLbl),
         actions: [
           if (MediaQuery.of(context).size.width >= AppValues.desktopBreakPoint)
-            appBarRightSideActionD(),
+            appBarRightSideActionWiderScreen(),
           if (MediaQuery.of(context).size.width < AppValues.desktopBreakPoint)
             appBarRightSideAction(),
         ],
@@ -99,43 +114,126 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _apiConnDropDownDialog() {
+    print('apidropdown');
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              titlePadding: EdgeInsets.zero,
+              contentPadding: EdgeInsets.zero,
+              //insetPadding: const EdgeInsets.only(bottom: 600, left: 1075),
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(4.0))),
+              content: ApiConnDropDownWidget());
+        });
+  }
+
+  void _themeDropDownDialog() {
+    print('themecolor');
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Align(
+            alignment: Alignment.topRight,
+            child: AlertDialog(
+
+                titlePadding: EdgeInsets.zero,
+                contentPadding: EdgeInsets.zero,
+                //insetPadding: const EdgeInsets.only(bottom: 600, left: 1075),
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(4.0))),
+                content: buildThemeDropDown()),
+          );
+        });
+  }
+
+  List<DropdownMenuItem<String>>? _getThems() {
+    List<DropdownMenuItem<String>>? list = <DropdownMenuItem<String>>[];
+    for (var item in ThemeEnum.values) {
+      print("themeitem ${item.name}");
+      list.add(
+          DropdownMenuItem<String>(value: item.name, child: Text(item.name)));
+    }
+    print("themeitem len${list.length} $list");
+    return list;
+  }
+
+  Widget buildThemeDropDown() {
+    return DropdownButton<String>(
+      value: ThemeNotifier.ezCurThemeName.name,
+      icon: const Icon(Icons.arrow_downward),
+      onChanged: (String? val) async {
+        if (val != null) {
+          ThemeEnum theme;
+          switch (val) {
+            case "Light":
+            case "White":
+              theme = ThemeEnum.White;
+              break;
+
+            default:
+              theme = ThemeEnum.Dark;
+              break;
+          }
+          await getIt<ThemeNotifier>().setTheme(theme);
+          dismissDialog(context);
+          setState(() {});
+        }
+      },
+      items: _getThems(),
+    );
+  }
+
 //action items for desktop
-  Widget appBarRightSideActionD() {
+  Widget appBarRightSideActionWiderScreen() {
     return Row(
       children: [
-        Tooltip(
-          padding: EdgeInsets.all(5),
-          height: 35,
-          textStyle: TextStyle(
-              fontSize: 15, color: Colors.white, fontWeight: FontWeight.normal),
-          message: AppValues.apiConnLbl,
-          child: IconButton(
-            icon: Icon(Icons.api_rounded),
-            onPressed: () => selectedItem(context, 0),
+        InkWell(
+          child: Text(
+            ThemeNotifier.ezCurThemeName.name,
+            style: const TextStyle(fontSize: 14, fontStyle: FontStyle.normal),
           ),
+          onTap: () {
+            setState(() {
+              _setSelectedItemForRightSideAction(context, 0);
+            });
+          },
+        ),
+        const SizedBox(
+          width: 15,
+        ),
+        InkWell(
+          child: Text(ApiPaths.baseURLName.split('|')[0]),
+          onTap: () {
+            setState(() {
+              _setSelectedItemForRightSideAction(context, 1);
+            });
+          },
         ),
         Tooltip(
           //waitDuration: Duration(seconds: 1),
           //showDuration: Duration(seconds: 2),
-          padding: EdgeInsets.all(5),
+          padding: const EdgeInsets.all(5),
           height: 35,
-          textStyle: TextStyle(
-              fontSize: 15, color: Colors.white, fontWeight: FontWeight.normal),
+          textStyle: const TextStyle(
+              fontSize: 15,
+              color: Color.fromARGB(255, 241, 212, 212),
+              fontWeight: FontWeight.normal),
           message: AppValues.dataRefreshLbl,
           child: IconButton(
-            icon: Icon(Icons.refresh_outlined),
-            onPressed: () => selectedItem(context, 1),
-          ),
+              icon: const Icon(Icons.refresh_outlined),
+              onPressed: () => _setSelectedItemForRightSideAction(context, 2)),
         ),
         Tooltip(
-          padding: EdgeInsets.all(5),
+          padding: const EdgeInsets.all(5),
           height: 35,
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
               fontSize: 15, color: Colors.white, fontWeight: FontWeight.normal),
           message: AppValues.signOutLbl,
           child: IconButton(
-              icon: Icon(Icons.logout),
-              onPressed: () => selectedItem(context, 2)),
+              icon: const Icon(Icons.logout),
+              onPressed: () => _setSelectedItemForRightSideAction(context, 3)),
         ),
       ],
     );
@@ -147,23 +245,21 @@ class _HomePageState extends State<HomePage> {
       enabled: true,
       itemBuilder: (context) => [
         PopupMenuItem<int>(
-          value: 0,
-          child: Row(children: const [
-            Icon(Icons.api_rounded, color: Colors.black),
-            SizedBox(width: 7),
-            Text(AppValues.apiConnLbl),
-          ]),
-        ),
+            value: 0, child: Text(ThemeNotifier.ezCurThemeName.name)),
         PopupMenuItem<int>(
           value: 1,
+          child: AsyncApiTextWidget(),
+        ),
+        PopupMenuItem<int>(
+          value: 2,
           child: Row(children: const [
-            Icon(Icons.data_thresholding_outlined, color: Colors.black),
+            Icon(Icons.data_saver_off_sharp, color: Colors.black),
             SizedBox(width: 7),
             Text(AppValues.dataRefreshLbl),
           ]),
         ),
         PopupMenuItem<int>(
-          value: 2,
+          value: 3,
           child: Row(children: const [
             Icon(Icons.logout, color: Colors.black),
             SizedBox(width: 7),
@@ -171,25 +267,31 @@ class _HomePageState extends State<HomePage> {
           ]),
         ),
       ],
-      onSelected: (item) => selectedItem(context, item),
+      onSelected: (item) => _setSelectedItemForRightSideAction(context, item),
     );
   }
 
-  selectedItem(BuildContext context, int item) {
+  _setSelectedItemForRightSideAction(BuildContext context, int item) {
+    print('item ${item}');
     switch (item) {
       case 0:
-        print('Api configuration');
+        _themeDropDownDialog();
         break;
       case 1:
-        print('Data Refresh');
+        print('apidropdown');
+        _apiConnDropDownDialog();
+
+        break;
+      case 2:
+        // print('Data Refresh');
         UtilFunc.clearHydratedStorage();
-        UtilFunc.clearSharedStorage();
+        //UtilFunc.clearSharedStorage();
         AutoRouter.of(context).popAndPush(
             LoginRoute(redirectRoute: NavigationPath.homePageBase + "search"));
         break;
-      case 2:
+      case 3:
         print('logout');
-        UtilFunc.clearSharedStorage();
+        //UtilFunc.clearSharedStorage();
         AutoRouter.of(context).popAndPush(
             LoginRoute(redirectRoute: NavigationPath.homePageBase + "search"));
         break;
@@ -200,25 +302,27 @@ class _HomePageState extends State<HomePage> {
     return BlocBuilder<MenuCubit, BaseState>(
       builder: (context, state) {
         if (state is BaseLoading) {
-          return Drawer(
-            child: const CircularProgressIndicator(),
+          return const Drawer(
+            child: CircularProgressIndicator(),
           );
         } else if (state is BaseFailure) {
           return Drawer(child: Text(state.errorMsg));
         } else if (state is BaseListSuccess) {
-          print('menu success');
-          print('menu success test');
+          // print('menu success');
+          // print('menu success test');
           LinkedHashMap<String, MenuModel> menus =
               LinkedHashMap<String, MenuModel>();
 
           List<String> addedVals = [];
           // LinkedHashMap.fromIterable(state.menus,
           //     key: (m) => (m as MenuPermission).id, value: (m) => m);
-          print("BuildNavDrawer|element ");
+          //print("BuildNavDrawer|element ");
           for (var element in state.list) {
-            print("BuildNavDrawer|element $element");
+            // print("BuildNavDrawer|element $element");
             menus[element.id] = element;
-            if (element.id != 'root') {
+            if (element.id == 'root')
+              addedVals.add('search');
+            else {
               addedVals.add(element.name);
             }
           }
@@ -226,21 +330,24 @@ class _HomePageState extends State<HomePage> {
             child: ListView.builder(
               itemBuilder: ((context, index) {
                 return ListTile(
-                  hoverColor: Colors.amber[200],
+                  hoverColor:
+                      ezThemeData[ThemeNotifier.ezCurThemeName]?.hoverColor,
                   //leading: icon != null ? Icon(icon) : Icon(Icons.deck_outlined),
                   title: Text(addedVals[index]),
                   trailing: Icon(Icons.arrow_forward_ios),
                   contentPadding: EdgeInsets.only(left: 20),
                   // child: ,
                   onTap: () {
-                    print(AutoRouter.of(context).current.path);
+                    // print(AutoRouter.of(context).current.path);
                     if (index == 0) {
-                      AutoRouter.of(context).replaceNamed('user');
+                      AutoRouter.of(context).replaceNamed('search');
                     } else if (index == 1) {
-                      AutoRouter.of(context).replaceNamed('query');
+                      AutoRouter.of(context).replaceNamed('user');
                     } else if (index == 2) {
-                      AutoRouter.of(context).replaceNamed('indexes');
+                      AutoRouter.of(context).replaceNamed('query');
                     } else if (index == 3) {
+                      AutoRouter.of(context).replaceNamed('indexes');
+                    } else if (index == 4) {
                       AutoRouter.of(context).replaceNamed('fields');
                     }
 
@@ -253,10 +360,93 @@ class _HomePageState extends State<HomePage> {
           );
         }
         print('menu nothing');
-        return Drawer(
-          child: const Text("No menu is defined"),
+        return const Drawer(
+          child: Text("No menu is defined"),
         );
       },
     );
+  }
+}
+
+dismissDialog(BuildContext context) {
+  Navigator.pop(context);
+}
+
+class ApiConnDropDownWidget extends StatelessWidget {
+  @override
+  Widget build(context) {
+    print('apiconnection');
+    return FutureBuilder(
+        future: getApiConnList(),
+        builder: (context, AsyncSnapshot<List<String>?> list) {
+          if (list.hasData) {
+            print('apiconnection list.hasData');
+            return DropdownButton<String>(
+              value: ApiPaths.baseURLName,
+              icon: const Icon(Icons.arrow_downward),
+              onChanged: (String? val) async {
+                if (val != null) {
+                  var prefs = getIt<StorageService>();
+                  await prefs.setApiActiveConn(val);
+                  dismissDialog(context);
+                }
+              },
+              items: list.data!.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            );
+          } else {
+            print('apiconnection else');
+            return const CircularProgressIndicator();
+          }
+        });
+  }
+
+  Future<List<String>?> getApiConnList() async {
+    var prefs = getIt<StorageService>();
+    print("getApiConnList|testing");
+    List<String>? connList;
+    connList = await prefs.getApiConnColl();
+    print("getApiConnList|after get api conn $connList");
+    return connList;
+  }
+}
+
+class AsyncApiTextWidget extends StatelessWidget {
+  @override
+  Widget build(context) {
+    return FutureBuilder(
+        future: getApiActiveName(),
+        builder: (context, AsyncSnapshot<String?> name) {
+          if (name.hasData) {
+            return Container(
+              width: 50,
+              child: InkWell(
+                  child: Text(name.data!),
+                  onTap: () async {
+                    ApiConnDropDownWidget();
+                  }),
+            );
+          } else {
+            return const CircularProgressIndicator();
+          }
+        });
+  }
+
+  Future<String?> getApiActiveName() async {
+    var prefs = getIt<StorageService>();
+    print("getApiConnList|testing");
+    String? connName;
+    connName = await prefs.getApiActiveConn();
+    print("getApiConnList|after get api conn $connName");
+    if (connName != null) {
+      var split = connName.split('|');
+      return Future.value(split[0]);
+    } else {
+      return Future.value(null);
+    }
   }
 }

@@ -18,12 +18,17 @@ class NavigationSearchCubit extends SearchCubit {}
 class SearchCubit extends Cubit<SearchState> {
   SearchCubit() : super(SearchInitial());
 
+  Future<void> clearResultGrid() async {
+    emit(SearchEmpty());
+  }
+
   Future<void> getAllSearchs(String req) async {
     emit(SearchLoading());
     try {
       var repo = SearchRepo();
       print("gtallserchs| $req");
       SearchResult search = await repo.getSearchData(req);
+      // print("gtallserchs|27");
       if (search.resultRow == null) {
         emit(SearchEmpty());
       } else {
@@ -31,7 +36,7 @@ class SearchCubit extends Cubit<SearchState> {
       }
     } on CustomException catch (e, s) {
       if (e is UnauthorizedException) {
-        MyApp.isAuthenticated = false;
+        isAuthenticated = false;
       }
       print("CustomException: $e $s ");
       emit(SearchFailure(errorMsg: e.toString(), errorCode: e.statusCode));

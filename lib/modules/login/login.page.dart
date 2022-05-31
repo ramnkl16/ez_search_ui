@@ -1,11 +1,16 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:ez_search_ui/main.dart';
+import 'package:ez_search_ui/modules/theme/configtheme.dart';
+import 'package:ez_search_ui/modules/theme/themenotifier.dart';
+import 'package:ez_search_ui/services/serviceLocator.dart';
+import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/constants/api_endpoints.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
-import 'package:ez_search_ui/constants/navigation_path.dart';
+
 import 'package:ez_search_ui/helper/UIHelper.dart';
 import 'package:ez_search_ui/helper/utilfunc.dart';
 import 'package:ez_search_ui/modules/authentication/authentication.cubit.dart';
@@ -29,19 +34,21 @@ class _LoginPageState extends State<LoginPage> {
   late TextEditingController emailOrMobCtrl;
   late TextEditingController pwdCtrl;
   late TextEditingController connCtrl;
-  late String apiConn;
 
   @override
   void initState() {
     domainCtrl = TextEditingController();
     emailOrMobCtrl = TextEditingController();
     pwdCtrl = TextEditingController();
-    connCtrl = TextEditingController(text: ApiPaths.baseURL);
+    connCtrl = TextEditingController(
+        text: ApiPaths.baseURLName); //apiConn global variable
 
     domainCtrl.text = 'platform';
     emailOrMobCtrl.text = 'admin@gost.com';
     pwdCtrl.text = 'welcome@123';
-    apiConn = UtilFunc.getDefaultConnection();
+
+    //var prefs = getIt<StorageService>();
+    //apiConn = await prefs.getApiActiveConn();
 
     // domainCtrl.text = 'PLATFORM';
     // emailOrMobCtrl.text = 'platformadmin@gmail.com';
@@ -77,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       Text('Login',
                           textAlign: TextAlign.left,
-                          style: Theme.of(context).textTheme.titleLarge),
+                          style: Theme.of(context).textTheme.bodyText1),
                       SizedBox(
                         height: 50,
                       ),
@@ -156,20 +163,20 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      if (apiConn.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            width: AppValues.loginWidgetWidth,
-                            child: TextField(
-                              controller: connCtrl,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Api Connection string'),
-                            ),
+                      // if (apiConn == null)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SizedBox(
+                          width: AppValues.loginWidgetWidth,
+                          child: TextField(
+                            controller: connCtrl,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Api Connection string'),
                           ),
                         ),
+                      ),
                       SizedBox(
                         height: 20,
                       ),
@@ -220,8 +227,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  MaterialButton buildSignInButton(BuildContext context) {
-    return MaterialButton(
+  ElevatedButton buildSignInButton(BuildContext context) {
+    return ElevatedButton(
+      // el : ezThemeData[ThemeNotifier.ezCurThemeName].textButtonTheme
       onPressed: () {
         BlocProvider.of<LoginCubit>(context).loginUser(LoginRequest(
           emailOrMobile: emailOrMobCtrl.text,

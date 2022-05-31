@@ -23,12 +23,12 @@ class IndexListCubit extends Cubit<IndexState> {
 
   IndexRepo repo = IndexRepo();
 
-  Future<void> getIndexes() async {
+  Future<void> getIndexes(String text) async {
     emit(IndexLoading());
     try {
       var repo = IndexRepo();
       print("getIndexes");
-      List<String> list = await repo.getIndexes(ApiPaths.ListIndexes);
+      List<String> list = await repo.getIndexes(ApiPaths.listIndexes);
       if (list == null) {
         emit(IndexEmpty());
       } else {
@@ -36,7 +36,7 @@ class IndexListCubit extends Cubit<IndexState> {
       }
     } on CustomException catch (e, s) {
       if (e is UnauthorizedException) {
-        MyApp.isAuthenticated = false;
+        isAuthenticated = false;
       }
       print("CustomException: $e $s ");
       emit(IndexFailure(errorMsg: e.toString(), errorCode: e.statusCode));

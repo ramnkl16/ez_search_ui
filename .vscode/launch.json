@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "ez_search_ui",
             "request": "launch",
@@ -13,6 +14,9 @@
                 "127.0.0.1",
                 "-d",
                 "chrome",
+                "--web-port",
+                "8080"
+                // "--release"
                
             ]
         }

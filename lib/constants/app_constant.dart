@@ -22,5 +22,4 @@ class SharedPrefKeys {
   static const String apiConns = "apiConns";
   static const String nsID = 'nsid';
   static const String grpID = 'groupId';
-  static const String x_auth = "x-auth";
 }

@@ -2,7 +2,10 @@
 //Search
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:ez_search_ui/constants/api_endpoints.dart';
+import 'package:ez_search_ui/modules/indexes/indexes.repo.dart';
+import 'package:ez_search_ui/modules/theme/configtheme.dart';
+import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,11 +18,15 @@ import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/helper/UIHelper.dart';
 import 'package:ez_search_ui/helper/commondropdown.dart';
-import 'package:ez_search_ui/helper/utilfunc.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.cubit.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.model.dart';
 import 'package:ez_search_ui/modules/search/SearchResult.dart';
 import 'package:ez_search_ui/modules/search/search.cubit.dart';
+import 'package:ez_search_ui/modules/search/search.repo.dart';
+import 'dart:convert';
+import 'package:csv/csv.dart';
+import 'package:universal_html/html.dart' as html;
+import 'package:syncfusion_flutter_core/theme.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -34,6 +41,7 @@ List<RptQueryModel> rptList = <RptQueryModel>[];
 RptQueryModel curRptQuery =
     RptQueryModel(id: '', name: '', division: '', page: '', CustomData: '');
 Map<String, bool> facetsFilter = {};
+Map<String, IndexSchemaModel> curSchemas = {};
 Map<String, DataGridController> facetDGctrls = {};
 
 class _SearchPageState extends State<SearchPage> {
@@ -42,6 +50,7 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController qTxtCtrl = TextEditingController();
   final TextEditingController nqNameCtrl = TextEditingController();
   final TextEditingController pgIndexCtrl = TextEditingController();
+  final TextEditingController searchWordCtrl = TextEditingController();
   final TextEditingController pgSizeCtrl = TextEditingController();
   final TextEditingController sincetimeCtrl = TextEditingController();
   final TextEditingController sinceOnCtrl = TextEditingController();
@@ -66,6 +75,7 @@ class _SearchPageState extends State<SearchPage> {
 
   /// Determine to decide whether the device in landscape or in portrait.
   late bool isLandscapeInMobileView;
+  late double pageMaxheight;
 
   @override
   void initState() {
@@ -88,45 +98,50 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Map<String, String> _parseQuery() {
-    qTxtCtrl.text = curRptQuery.CustomData.trim(); //qTxtCtrl.text.trim();
+    //qTxtCtrl.text = curRptQuery.CustomData.trim(); //qTxtCtrl.text.trim();
+    print(qTxtCtrl.text);
     var grps = regEx.allMatches(qTxtCtrl.text.toLowerCase());
     var curIdx = 0;
     var curKey = '';
     var maxLen = qTxtCtrl.text.length;
-    print("for grps maxlen $maxLen");
+    // print("for grps maxlen $maxLen");
     Map<String, String> map = <String, String>{};
     RegExpMatch? item;
     for (item in grps) {
       if (curIdx > 0) {
         var nt = qTxtCtrl.text.substring(curIdx, item.start).trim();
-        print(
-            "for grps if ${item.start},${item.end}[${curKey.substring(0, 3)}]=$nt");
+        // print(
+        //   "for grps if ${item.start},${item.end}[${curKey.substring(0, 3)}]=$nt");
         map[curKey.substring(0, 3).toLowerCase()] = nt;
       }
       curKey = qTxtCtrl.text.substring(item.start, item.end);
       curIdx = item.end;
-      print("for grps  ${item.start} ${item.end}");
+      // print("for grps  ${item.start} ${item.end}");
     }
-    print("regex map grp ${map.keys} ${map.values}");
+    //print("regex map grp ${map.keys} ${map.values}");
     item = grps.last;
-    print(
-        "for grps out side grps $curIdx $maxLen, ${maxLen - item.end}  ${(curIdx < maxLen)}");
+    //print(
+    //   "for grps out side grps $curIdx $maxLen, ${maxLen - item.end},start=${item.start},end=${item.end}, ${(curIdx < maxLen)}");
     if (curIdx < maxLen) {
       curKey = qTxtCtrl.text.substring(item.start, item.end);
-      print("for grps $curKey");
+      // print("for grps $curKey");
       var nt = qTxtCtrl.text.substring(item.end);
-      print("for grps out side grps ${item.start} ${item.end} $nt");
+      //  print("for grps out side grps ${item.start} ${item.end} $nt");
 
       map[curKey.substring(0, 3).toLowerCase()] = nt;
       //qTxtCtrl.text.substring(item.end, maxLen - item.end).trim();
     }
-    print("regex map grp ${map.keys} ${map.values}");
+    //print("regex map grp ${map.keys} ${map.values}");
+
     return map;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: LayoutBuilder(builder: (context, constraints) {
+      pageMaxheight = constraints.maxHeight;
+      print(
+          "Boxconstraint ${constraints.maxHeight}, w= ${constraints.maxWidth}");
       return Column(
         children: [
           Row(children: [
@@ -158,7 +173,7 @@ class _SearchPageState extends State<SearchPage> {
                 children: [
                   IconButton(
                       onPressed: () {
-                        _showMaterialDialog();
+                        _showSaveDialog();
                       },
                       icon: Icon(Icons.save_as_outlined),
                       tooltip: "Save as"),
@@ -166,12 +181,153 @@ class _SearchPageState extends State<SearchPage> {
                   if (state is RptQueryFailure) Text(state.errorMsg),
                 ],
               );
-            })
+            }),
+            BlocBuilder<RptQuerySaveCubit, RptQueryState>(
+                builder: (context, state) {
+              return Column(
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        exportToCsvDialog();
+                      },
+                      icon: const Icon(Icons.download_rounded),
+                      tooltip: "Csv Download"),
+                  if (state is BaseLoading) CircularProgressIndicator(),
+                  if (state is RptQueryFailure) Text(state.errorMsg),
+                ],
+              );
+            }),
           ]),
-          Expanded(child: _sfGridBuildBlocBuilder()),
+          _sfGridBuildBlocBuilder(),
         ],
       );
     }));
+  }
+
+  void exportToCsvDialog() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Please provide start and end page index'),
+            content: buildStartandEndPage(),
+            actions: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 10, right: 10, top: 10, bottom: 10),
+                child: TextButton(
+                    onPressed: () {
+                      _dismissDialog(context);
+                    },
+                    child: Text('Cancel')),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 10, right: 10, top: 10, bottom: 10),
+                child: TextButton(
+                  onPressed: () {
+                    generateCSV();
+                    _dismissDialog(context);
+                  },
+                  child: Text('Export'),
+                ),
+              ),
+            ],
+          );
+        });
+  }
+
+  Row buildStartandEndPage() {
+    return Row(
+      children: [
+        Expanded(
+          child: Padding(
+            padding:
+                const EdgeInsets.only(left: 10, right: 20, top: 10, bottom: 10),
+            child: TextField(
+              onChanged: (val) {},
+              decoration: InputDecoration(labelText: "Start Page"),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding:
+                const EdgeInsets.only(left: 20, right: 10, top: 10, bottom: 10),
+            child: TextField(
+              controller: pgIndexCtrl,
+              //keyboardType: TextInputType.multiline,
+              //textInputAction: TextInputAction.none,
+              onChanged: (val) {},
+              decoration: InputDecoration(
+                  labelText: "End Page [${_getMaxPagination()}]"),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void generateCSV() async {
+    SearchRepo repo = SearchRepo();
+    //pgIndexCtrl.text =
+    _constructQueryFromCtrls();
+
+    if (qTxtCtrl.text.isEmpty) {
+      //TODO show nice way
+      _showSnackBarMessage("Please select a query defintion.");
+      return;
+    }
+    try {
+      result = await repo.getSearchData(qTxtCtrl.text);
+    } on Exception catch (e) {
+      _showSnackBarMessage("Failed $e");
+      print("Failed $e");
+      return;
+    }
+
+    List<String> rowHeader = [];
+    for (var fieldName in result!.fields!) {
+      rowHeader.add(fieldName);
+    }
+    List<List<dynamic>> rows = [];
+    //First add entire row header into our first row
+    rows.add(rowHeader);
+    //Now lets add 5 data rows
+
+    for (var row in result!.resultRow!) {
+      List<dynamic> dataRow = [];
+      int colIndex = 0;
+      for (var key in rowHeader) {
+        dataRow.add('');
+        if (row[key] != null) {
+          dataRow[colIndex] = row[key];
+        }
+        colIndex++;
+      }
+      rows.add(dataRow);
+    }
+    String csv = const ListToCsvConverter().convert(rows);
+//this csv variable holds entire csv data
+//Now Convert or encode this csv string into utf8
+    final bytes = utf8.encode(csv);
+//NOTE THAT HERE WE USED HTML PACKAGE
+    final blob = html.Blob([bytes]);
+//It will create downloadable object
+    final url = html.Url.createObjectUrlFromBlob(blob);
+//It will create anchor to download the file
+    //final DateFormat format = DateFormat("yyy-MM-dd-hh-mm-ss");
+    final String formated = DateTime.now().toString();
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = 'export_$formated.csv';
+//finally add the csv anchor to body
+    html.document.body!.children.add(anchor);
+// Cause download by calling this function
+    anchor.click();
+//revoke the object
+    html.Url.revokeObjectUrl(url);
   }
 
   RawKeyboardListener _buildqueryEditTb() {
@@ -185,13 +341,13 @@ class _SearchPageState extends State<SearchPage> {
           if ((e.isKeyPressed(LogicalKeyboardKey.numpadEnter) ||
                   e.isKeyPressed(LogicalKeyboardKey.enter)) &&
               qTxtCtrl.text.isNotEmpty) {
-            if (isQueryModifiedByUser) {
-              curRptQuery.CustomData = qTxtCtrl.text;
-              isQueryModifiedByUser = false;
-            }
+            // if (isQueryModifiedByUser) {
+            //   curRptQuery.CustomData = qTxtCtrl.text;
+            //   isQueryModifiedByUser = false;
+            // }
 
             //isQueryModifiedByUser = false;
-            _execSearchQuery();
+            //_execSearchQuery();
             //print("keypressed ${e.data.logicalKey}  ${e.character}");
           }
         },
@@ -210,11 +366,14 @@ class _SearchPageState extends State<SearchPage> {
 
   void _execSearchQuery() {
     //print("_execSearchQuery() ${curRptQuery.CustomData} ${qTxtCtrl.text}");
-    if (isQueryModifiedByUser) {
-      curRptQuery.CustomData = qTxtCtrl.text;
-      isQueryModifiedByUser = false;
-    }
+    // if (isQueryModifiedByUser) {
+    //   curRptQuery.CustomData = qTxtCtrl.text;
+    //   isQueryModifiedByUser = false;
+    // }
     if (hasQueryChanged) _constructQueryFromCtrls();
+
+    print("Executesearchquery|#369 ${qTxtCtrl.text}");
+    //_constructQueryFromCtrls();
 
     BlocProvider.of<SearchCubit>(context).getAllSearchs(qTxtCtrl.text);
   }
@@ -226,103 +385,107 @@ class _SearchPageState extends State<SearchPage> {
           return AlertDialog(
               title: Text('Query Helper'),
               content: SingleChildScrollView(
-                child: RichText(
-                  overflow: TextOverflow.clip,
-                  text: TextSpan(
-                      //text: "Search query helper",
-                      style: DefaultTextStyle.of(context).style,
-                      children: const <TextSpan>[
-                        TextSpan(
-                            text:
-                                'Search query consist of multiple clauses {select |from |where |limit |since |facets |sort}. It Looks like a SQL query.\nClauses order can be any order, parse engine able to parse them."from" clause must be presented in any query.\nIndex document fileds are case sensitive. "\nselect clause contains list of fields, you can also provide * to pull all the index fields in a document. {{baseUrl}}/api/getfields?indexName=nameofindex can help get the list of fields\n'),
-                        TextSpan(
-                            text:
-                                'from clause contains index document name in which search can be executed. You can get exact index name from api {{baseUrl}}/api/getindexes or gost search UI\n'),
-                        TextSpan(
-                            text:
-                                'where clause contains search conditions. All coditions are separated by coma char and or not can be acheived as mentioned Require, Optional and Exclusion section\n'),
-                        TextSpan(
-                            text:
-                                'limit clause helps to fetch no of records on top where condition. The format of is {limit startIndex,No of record to be taken}, start index should be 0 based. examble limit 0,10 which fetches first 10 records \n'),
-                        TextSpan(
-                            text:
-                                'since clause also helps filter condition for range fields. Time line based search. It helps mainly for timelime search like {since startDate:30 minutes ago}  \n'),
-                        TextSpan(
-                            text:
-                                'facets clause also to get the facets data. {facets brand:no of records} example {facets brand:30} it fecths facets only first 30 records along with count.\n'),
-                        TextSpan(
-                            text:
-                                'sort clause helps ordering the result data set. {sort +startdate,-brand} starting char [+/-] correspond ascending/descending\n\n'),
-                        TextSpan(
-                            text: "Field Scoping\n",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                            text:
-                                "You can qualify the field for these searches by prefixing them with the name of the field separated by a colon.\n"),
-                        TextSpan(
-                            text:
-                                '[name:ram] parsing field logic is upto [:] "name" field name and "ram" should match in the index document. Would apply as match query\n'),
-                        TextSpan(
-                            text:
-                                '[select id,name,age from indexName where name:ram,age:>40,+age:<=50,startDt>2022-01-01T01:01:00Z facets name limit 1, 10]\n\n'),
-                        TextSpan(
-                            text: "Terms query\n",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                            text:
-                                'In where condition if the filed name missed then automatically construct the term query in the below query "ram" will searched any document using term query which mean find the "ram" any where in the document on all text fields'),
-                        TextSpan(
-                            text:
-                                'Sample query \n[select id,name,age from indexName where ram,age:>40,+age:<=50,startDt>2022-01-01T01:01:00Z facets name limit 1, 10]\n\n'),
-                        TextSpan(
-                            text: "Regular Expressions\n",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                            text:
-                                'You can use regular expressions in addition to using terms by wrapping the expression in forward slashes (/).\n[name:/r*/] in the value part starts with forward slash then apply regex query\n\n'),
-                        TextSpan(
-                            text:
-                                'Sample query \n[select id,name,age from indexName where name:/r*/,age:>40,+age:<=50,startDt>2022-01-01T01:01:00Z facets name limit 1, 10]\n\n'),
-                        TextSpan(
-                            text: "Required, Optional, and Exclusion\n",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                            text:
-                                'When your query string includes multiple items, by default these are placed into the SHOULD clause of a Boolean Query.\nYou can change this by prefixing your items with a "+" or "-". The "+" Prefixing with plus places that item in the MUST portion of the boolean query. \nThe "-" Prefixing with a minus places that item in the MUST NOT portion of the boolean query.\n\n'),
-                        TextSpan(
-                            text:
-                                'Sample query \n[select id,name,age from indexName where name:ram,age:>40,+age:<=50,startDt>2022-01-01T01:01:00Z facets name limit 1, 10]\n'),
-                        TextSpan(
-                            text: "Numeric / Date Ranges\n",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                            text:
-                                'You can perform ranges by using the >, >=, <, and <= operators, followed by a valid numeric/datetime value\n\n'),
-                        TextSpan(
-                            text: "Escaping\n",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                            text:
-                                'The following quoted string enumerates the characters which may be escaped:\n+-=&|><!(){}[]^\\"~*?:\\\\/\nNOTE: this list contains the space character.\n'),
-                        TextSpan(
-                            text:
-                                'In order to escape these characters, they are prefixed with the \ (backslash) character. In all cases, using the escaped version produces the character itself and is not interpreted by the lexer.\n\n'),
-                        TextSpan(
-                            text:
-                                'Example:\n"my\\ name" will be interpreted as a single argument to a match query with the value “my name”.\nContains {a\\" character} will be interpreted as a single argument to a phrase query with the value contains {a" character}.\n\n'),
-                        TextSpan(
-                            text: "Date field\n",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(
-                            text:
-                                'It is formated and converted to UTC time zone as given below\nExamaple\n2022-02-19T20:49:03Z  golang format is [2006-01-02T15:04:05Z] which is equalant [yyyy-MM-ddThh:mm:ssZ] while searching must follow the same format.\n'),
-                      ]),
-                ),
+                child: queryInfoText(context),
               ));
         });
   }
 
-  void _showMaterialDialog() {
+  RichText queryInfoText(BuildContext context) {
+    return RichText(
+      overflow: TextOverflow.clip,
+      text: TextSpan(
+          //text: "Search query helper",
+          style: DefaultTextStyle.of(context).style,
+          children: const <TextSpan>[
+            TextSpan(
+                text:
+                    'Search query consist of multiple clauses {select |from |where |limit |since |facets |sort}. It Looks like a SQL query.\nClauses order can be any order, parse engine able to parse them."from" clause must be presented in any query.\nIndex document fileds are case sensitive. "\nselect clause contains list of fields, you can also provide * to pull all the index fields in a document. {{baseUrl}}/api/getfields?indexName=nameofindex can help get the list of fields\n'),
+            TextSpan(
+                text:
+                    'from clause contains index document name in which search can be executed. You can get exact index name from api {{baseUrl}}/api/getindexes or gost search UI\n'),
+            TextSpan(
+                text:
+                    'where clause contains search conditions. All coditions are separated by coma char and or not can be acheived as mentioned Require, Optional and Exclusion section\n'),
+            TextSpan(
+                text:
+                    'limit clause helps to fetch no of records on top where condition. The format of is {limit startIndex,No of record to be taken}, start index should be 0 based. examble limit 0,10 which fetches first 10 records \n'),
+            TextSpan(
+                text:
+                    'since clause also helps filter condition for range fields. Time line based search. It helps mainly for timelime search like {since startDate:30 minutes ago}  \n'),
+            TextSpan(
+                text:
+                    'facets clause also to get the facets data. {facets brand:no of records} example {facets brand:30} it fecths facets only first 30 records along with count.\n'),
+            TextSpan(
+                text:
+                    'sort clause helps ordering the result data set. {sort +startdate,-brand} starting char [+/-] correspond ascending/descending\n\n'),
+            TextSpan(
+                text: "Field Scoping\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    "You can qualify the field for these searches by prefixing them with the name of the field separated by a colon.\n"),
+            TextSpan(
+                text:
+                    '[name:ram] parsing field logic is upto [:] "name" field name and "ram" should match in the index document. Would apply as match query\n'),
+            TextSpan(
+                text:
+                    '[select id,name,age from indexName where name:ram,age:>40,+age:<=50,startDt>2022-01-01T01:01:00Z facets name limit 1, 10]\n\n'),
+            TextSpan(
+                text: "Terms query\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    'In where condition if the filed name missed then automatically construct the term query in the below query "ram" will searched any document using term query which mean find the "ram" any where in the document on all text fields'),
+            TextSpan(
+                text:
+                    'Sample query \n[select id,name,age from indexName where ram,age:>40,+age:<=50,startDt>2022-01-01T01:01:00Z facets name limit 1, 10]\n\n'),
+            TextSpan(
+                text: "Regular Expressions\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    'You can use regular expressions in addition to using terms by wrapping the expression in forward slashes (/).\n[name:/r*/] in the value part starts with forward slash then apply regex query\n\n'),
+            TextSpan(
+                text:
+                    'Sample query \n[select id,name,age from indexName where name:/r*/,age:>40,+age:<=50,startDt>2022-01-01T01:01:00Z facets name limit 1, 10]\n\n'),
+            TextSpan(
+                text: "Required, Optional, and Exclusion\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    'When your query string includes multiple items, by default these are placed into the SHOULD clause of a Boolean Query.\nYou can change this by prefixing your items with a "+" or "-". The "+" Prefixing with plus places that item in the MUST portion of the boolean query. \nThe "-" Prefixing with a minus places that item in the MUST NOT portion of the boolean query.\n\n'),
+            TextSpan(
+                text:
+                    'Sample query \n[select id,name,age from indexName where name:ram,age:>40,+age:<=50,startDt>2022-01-01T01:01:00Z facets name limit 1, 10]\n'),
+            TextSpan(
+                text: "Numeric / Date Ranges\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    'You can perform ranges by using the >, >=, <, and <= operators, followed by a valid numeric/datetime value\n\n'),
+            TextSpan(
+                text: "Escaping\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    'The following quoted string enumerates the characters which may be escaped:\n+-=&|><!(){}[]^\\"~*?:\\\\/\nNOTE: this list contains the space character.\n'),
+            TextSpan(
+                text:
+                    'In order to escape these characters, they are prefixed with the \ (backslash) character. In all cases, using the escaped version produces the character itself and is not interpreted by the lexer.\n\n'),
+            TextSpan(
+                text:
+                    'Example:\n"my\\ name" will be interpreted as a single argument to a match query with the value “my name”.\nContains {a\\" character} will be interpreted as a single argument to a phrase query with the value contains {a" character}.\n\n'),
+            TextSpan(
+                text: "Date field\n",
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text:
+                    'It is formated and converted to UTC time zone as given below\nExamaple\n2022-02-19T20:49:03Z  golang format is [2006-01-02T15:04:05Z] which is equalant [yyyy-MM-ddThh:mm:ssZ] while searching must follow the same format.\n'),
+          ]),
+    );
+  }
+
+  void _showSaveDialog() {
     showDialog(
         context: context,
         builder: (context) {
@@ -359,7 +522,7 @@ class _SearchPageState extends State<SearchPage> {
         focusNode: nqfn,
         autofocus: true,
         onKey: (RawKeyEvent e) {
-          print("on key%${nqNameCtrl.text}");
+          // print("on key%${nqNameCtrl.text}");
           if ((e.isKeyPressed(LogicalKeyboardKey.numpadEnter) ||
                   e.isKeyPressed(LogicalKeyboardKey.enter)) &&
               nqNameCtrl.text.isNotEmpty) {
@@ -380,7 +543,7 @@ class _SearchPageState extends State<SearchPage> {
     bool isExist = false;
 
     for (var item in rptList) {
-      print("rptName loop $item");
+      //print("rptName loop $item");
       if (item.name == nqNameCtrl.text) {
         isExist = true;
         break;
@@ -398,7 +561,7 @@ class _SearchPageState extends State<SearchPage> {
       curRptQuery = RptQueryModel(
           id: "",
           name: nqNameCtrl.text,
-          division: UtilFunc.getNamespace(),
+          division: "",
           page: "search",
           CustomData: qTxtCtrl.text);
       rptList.add(curRptQuery);
@@ -420,6 +583,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _constructQueryFromCtrls() {
+    print("starting func  $qParsedMap");
     var sb = StringBuffer();
     if (qParsedMap["sel"] != null) {
       sb.write('select ${qParsedMap["sel"]} ');
@@ -427,19 +591,32 @@ class _SearchPageState extends State<SearchPage> {
     if (qParsedMap["fro"] != null) {
       sb.write('from ${qParsedMap["fro"]} ');
     }
-    if (qParsedMap["whe"] != null) {
-      sb.write('where ${qParsedMap["whe"]} ');
-      if (facetsFilter.keys.isNotEmpty) {
-        sb.write(', +${facetsFilter.keys.join(",+")}');
-      }
-    }
-    print("whe|keys ${facetsFilter.keys}");
-    if (qParsedMap["whe"] == null && facetsFilter.keys.isNotEmpty) {
-      var fjoin = facetsFilter.keys.join(",+");
-      print("whenew $fjoin");
-      sb.write('where +$fjoin ');
+    print("after where $qParsedMap");
+    var wClause = qParsedMap["whe"];
+    var commaChar = ',';
+    if (wClause == null) {
+      wClause = '';
+      commaChar = '';
     }
 
+    var facetKeys = '';
+    if (facetsFilter.keys.isNotEmpty) {
+      facetKeys = facetsFilter.keys.join(",+");
+      if (!wClause.contains(facetKeys)) {
+        wClause = '$wClause$commaChar +$facetKeys';
+        commaChar = ',';
+      }
+    }
+
+    if (searchWordCtrl.text.isNotEmpty) {
+      if (!wClause.contains(searchWordCtrl.text)) {
+        wClause = '$wClause$commaChar ${searchWordCtrl.text}';
+      }
+    }
+    if (wClause.length > 0) {
+      sb.write('where $wClause ');
+    }
+    print("after where $qParsedMap");
     if (sinceOnCtrl.text.isNotEmpty) {
       sb.write(
           "since ${sinceOnCtrl.text}:${sincetimeCtrl.text} $sinceAgoSelection ago ");
@@ -447,26 +624,33 @@ class _SearchPageState extends State<SearchPage> {
     if (qParsedMap["sor"] != null) {
       sb.write("sort ${qParsedMap["sor"]} ");
     }
-    if (qParsedMap["lim"] != null) {
+    // if (qParsedMap["lim"] != null) {
+    //print("start idnex ${pgIndexCtrl.text}");
+    if (pgIndexCtrl.text.isNotEmpty) {
       sb.write("limit ${_getStartIndex()},${pgSizeCtrl.text} ");
     }
     if (qParsedMap["fac"] != null) {
       sb.write("facets ${qParsedMap["fac"]} ");
     }
-    print("finalquery${sb.toString().trim()}");
+    // print("finalquery${sb.toString().trim()}");
+
     qTxtCtrl.text = sb.toString().trim();
-    hasQueryChanged = false;
+    print("Executesearchquery|${qTxtCtrl.text}");
+
     setState(() {});
   }
 
   void _updateCtrlsFromQuery() {
-    totRecCtrl.text = result!.total.toString();
+    print("_updateCtrlsFromQuery");
+    //totRecCtrl.text = result!.total.toString();
     qParsedMap = _parseQuery();
+    print("after query parsed $qParsedMap");
     if (qParsedMap["lim"] != null) {
       var lim = qParsedMap["lim"];
       var splits = lim?.split(",");
       if (splits!.isNotEmpty) pgSizeCtrl.text = splits[1];
     }
+    print("after limt $qParsedMap");
     if (qParsedMap["sin"] != null) {
       List<String> clause = (qParsedMap['sin'] ?? '').split(" ");
       if (clause.length < 3) {
@@ -482,13 +666,14 @@ class _SearchPageState extends State<SearchPage> {
       }
 
       for (var item in sinceAgoDD.values) {
-        print("since ago| ${clause[1]}| $item");
+        // print("since ago| ${clause[1]}| $item");
         if (item == clause[1]) {
           sinceAgoSelection = item;
           break;
         }
       }
     }
+    print("after end fun $qParsedMap");
     hasQueryChanged = false;
     isQueryModifiedByUser = false;
   }
@@ -502,7 +687,13 @@ class _SearchPageState extends State<SearchPage> {
     return BlocBuilder<SearchCubit, SearchState>(
       builder: (context, state) {
         if (state is SearchLoading) {
-          return const CircularProgressIndicator();
+          return SizedBox(
+              height: 45,
+              width: 45,
+              child: Center(
+                  child: const CircularProgressIndicator(
+                strokeWidth: 4,
+              )));
         } else if (state is SearchFailure) {
           return Center(
             child: Text(state.errorMsg),
@@ -510,9 +701,10 @@ class _SearchPageState extends State<SearchPage> {
         } else if (state is SearchSuccess) {
           result = state.props;
           _updateCtrlsFromQuery();
+          //print("_updateCtrlsFromQuery|672");
           return _buildSearchGrid();
         } else if (state is SearchEmpty) {
-          return Text(AppValues.noRecFoundExpLbl);
+          return const Text(AppValues.noRecFoundExpLbl);
         }
         return const Text("Select a query to view data.");
       },
@@ -534,15 +726,29 @@ class _SearchPageState extends State<SearchPage> {
                 k: "rptQuery",
                 uniqueValues: rptList.map((e) => e.id).toList(),
                 lblTxt: "Query defition",
-                onChanged: (String? val) {
+                onChanged: (String? val) async {
                   facetsFilter.clear();
                   if (val != null) {
                     for (var item in rptList) {
                       if (item.id == val) {
                         curRptQuery = item;
                         qTxtCtrl.text = item.CustomData;
-
+                        searchWordCtrl.text = '';
+                        _updateCtrlsFromQuery();
+                        // print(
+                        //     "getSchema|before repo call ${qParsedMap['fro']} $curSchemas ");
+                        IndexRepo repo = IndexRepo();
+                        var list = await repo.getSchema(
+                            ApiPaths.getIndexSchema, qParsedMap['fro']);
+                        curSchemas = {};
+                        for (var i in list) {
+                          curSchemas[i.name] = i;
+                        }
+                        // print(
+                        //     "getSchema|cur schema ${qParsedMap['fro']} $curSchemas ");
+                        facetsFilter.clear();
                         fn.requestFocus();
+                        BlocProvider.of<SearchCubit>(context).clearResultGrid();
                       }
                     }
                   }
@@ -559,33 +765,46 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   int _getMaxPagination() {
-    int maxCount =
-        (result!.total / int.parse(pgSizeCtrl.text)).floorToDouble().toInt();
+    int maxCount = 0;
+    if (result != null) {
+      maxCount =
+          (result!.total / int.parse(pgSizeCtrl.text)).floorToDouble().toInt();
+    }
+    print(
+        "Executesearchquery|result!.total=${result!.total} / ${pgSizeCtrl.text}");
     return maxCount;
   }
 
   Widget _buildSearchGrid() {
+    var fr = result!.facetResult!;
+
+    // print(
+    //    "result!.facetResult != null ${result!.facetResult != null}, firstkey:${fr.keys.first.length}, ${fr.values.length}, isempty ${fr.isEmpty} fr:${result!.facetResult!}, len ${result!.facetResult!.length}, ${fr.keys.length}");
+
     return Padding(
       padding: const EdgeInsets.all(4.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SingleChildScrollView(
-            padding: EdgeInsets.all(4),
-            child: Column(
-              children: _buildSFGridForFacet(),
-              mainAxisAlignment: MainAxisAlignment.start,
+          if (result!.facetResult!.keys.first.isNotEmpty)
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(4),
+              child: Column(
+                children: _buildSFGridForFacet(),
+                mainAxisAlignment: MainAxisAlignment.start,
+              ),
             ),
-          ),
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                  border: Border(left: BorderSide(color: Colors.black))),
-              child: Column(children: [
-                _buildQueryCtrls(),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.all(AppValues.sfGridPadding),
+            child: Column(children: [
+              _buildQueryCtrls(),
+              Padding(
+                padding: EdgeInsets.all(AppValues.sfGridPadding),
+                child: Container(
+                  height: pageMaxheight - 180,
+                  child: SfDataGridTheme(
+                    data: SfDataGridThemeData(
+                        headerColor: ezThemeData[ThemeNotifier.ezCurThemeName]
+                            ?.focusColor),
                     child: SfDataGrid(
                         allowSorting: true,
                         isScrollbarAlwaysShown: true,
@@ -605,8 +824,8 @@ class _SearchPageState extends State<SearchPage> {
                         columns: _buildGirdColumn),
                   ),
                 ),
-              ]),
-            ),
+              ),
+            ]),
           ),
         ],
       ),
@@ -656,7 +875,9 @@ class _SearchPageState extends State<SearchPage> {
   List<Widget> _buildSFGridForFacet() {
     var fr = result!.facetResult!;
     List<Widget> sfgList = [];
+    //print("serchpage|817, $fr");
     var gKeys = fr.keys.toList();
+    // print("serchpage|817, $gKeys");
     if (facetsFilter.isNotEmpty) {
       sfgList.add(Container(
         padding: const EdgeInsets.all(4),
@@ -684,6 +905,7 @@ class _SearchPageState extends State<SearchPage> {
               ],
             )));
       }
+      //print("serchpage|845");
     }
 
     for (var item in gKeys) {
@@ -704,59 +926,57 @@ class _SearchPageState extends State<SearchPage> {
                   right: BorderSide(color: Colors.black),
                   top: BorderSide(color: Colors.black),
                   bottom: BorderSide(color: Colors.black))),
-          child: SfDataGrid(
-              //allowSorting: true,
+          child: Padding(
+            padding: AppValues.formFieldPadding,
+            child: SfDataGrid(
+                //allowSorting: true,
 
-              isScrollbarAlwaysShown: true,
-              columnWidthMode: ColumnWidthMode.auto,
-              source: srcItems,
-              gridLinesVisibility: GridLinesVisibility.both,
-              headerGridLinesVisibility: GridLinesVisibility.both,
-              rowHeight: 40,
-              headerRowHeight: 45,
-              showCheckboxColumn: true,
-              selectionMode: SelectionMode.multiple,
+                //isScrollbarAlwaysShown: true,
+                columnWidthMode: ColumnWidthMode.auto,
+                source: srcItems,
+                gridLinesVisibility: GridLinesVisibility.both,
+                headerGridLinesVisibility: GridLinesVisibility.both,
+                rowHeight: 40,
+                headerRowHeight: 45,
+                showCheckboxColumn: true,
+                selectionMode: SelectionMode.multiple,
 
-              //allowPullToRefresh: true,
-              //navigationMode: GridNavigationMode.cell,
-              controller: _fgCtrl,
-              // onSelectionChanging: (addedRows, removedRows) {
-              // },
-              onSelectionChanging:
-                  (List<DataGridRow> src, List<DataGridRow> dsc) {
-                // //_fgCtrl.selectedIndex = detail.rowColumnIndex.rowIndex - 1;
-                // print("oncellTap src ${src.length}|dsc=${dsc.length}");
-                if (src.length == srcItems.rows.length || src.isEmpty) {
-                  print(
-                      "onSelectionChanging, src=${src.length}, des=${dsc.length} sritems=${srcItems.rows.length} ");
-                  return false;
-                } //avoid select all feature which lead false query because apply and condition
-                for (var row in src) {
-                  print(
-                      "oncellTap|src ${row.getCells()[0].columnName}|${row.getCells()[0].value}");
-                  var cell = row.getCells()[0];
-                  var key =
-                      '${cell.columnName}:${(cell.value as String).split("(")[0]}';
-                  if (facetsFilter.keys.contains(key)) {
-                    facetsFilter.remove(key);
-                  } else {
-                    facetsFilter[key] = true;
+                //allowPullToRefresh: true,
+                //navigationMode: GridNavigationMode.cell,
+                controller: _fgCtrl,
+                // onSelectionChanging: (addedRows, removedRows) {
+                // },
+                onSelectionChanging:
+                    (List<DataGridRow> src, List<DataGridRow> dsc) {
+                  // //_fgCtrl.selectedIndex = detail.rowColumnIndex.rowIndex - 1;
+                  // print("oncellTap src ${src.length}|dsc=${dsc.length}");
+                  for (var row in src) {
+                    print(
+                        "oncellTap|src ${row.getCells()[0].columnName}|${row.getCells()[0].value}");
+                    var cell = row.getCells()[0];
+                    var key =
+                        '${cell.columnName}:${(cell.value as String).split("(")[0]}';
+                    if (facetsFilter.keys.contains(key)) {
+                      facetsFilter.remove(key);
+                    } else {
+                      facetsFilter[key] = true;
+                    }
                   }
-                }
-                for (var row in dsc) {
-                  var cell = row.getCells()[0];
-                  var key =
-                      '${cell.columnName}:${(cell.value as String).split("(")[0]}';
-                  print("oncellTap|src $key");
-                  facetsFilter.remove(key);
-                }
-                hasQueryChanged = true;
-                _execSearchQuery();
-                return true;
-              },
-              columns: [
-                UIHelper.buildGridColumnFacets(label: item, columnName: item)
-              ]));
+                  for (var row in dsc) {
+                    var cell = row.getCells()[0];
+                    var key =
+                        '${cell.columnName}:${(cell.value as String).split("(")[0]}';
+                    // print("oncellTap|src $key");
+                    facetsFilter.remove(key);
+                  }
+                  hasQueryChanged = true;
+                  _execSearchQuery();
+                  return true;
+                },
+                columns: [
+                  UIHelper.buildGridColumnFacets(label: item, columnName: item)
+                ]),
+          ));
       for (var fItem in facetsFilter.keys) {}
       sfgList.add(sf);
       facetDGctrls[item] = _fgCtrl;
@@ -767,7 +987,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildFacetWidgets() {
     var fr = result!.facetResult!;
     var gKeys = fr.keys.toList();
-    print("gkeys $gKeys");
+    // print("gkeys $gKeys");
     List<Container> facetConList = [];
 
     var con = Container(
@@ -790,13 +1010,33 @@ class _SearchPageState extends State<SearchPage> {
 
   Row _buildQueryCtrls() {
     //if (kDebugMode) {
-    print("sinceAgoSelection $sinceAgoSelection");
+    // print("sinceAgoSelection $sinceAgoSelection");
     //}
     return Row(children: [
-      SizedBox(
-        width: 200,
+      Expanded(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(4),
+          child: TextField(
+            controller: searchWordCtrl,
+            // keyboardType: TextInputType.multiline,
+            // textInputAction: TextInputAction.none,
+            onChanged: (val) {
+              hasQueryChanged = true;
+              isQueryModifiedByUser = true;
+            },
+            onTap: () {
+              if (hasQueryChanged) {
+                _constructQueryFromCtrls();
+              }
+            },
+            decoration: const InputDecoration(labelText: "Search term"),
+            //readOnly: true,
+          ),
+        ),
+      ),
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(4),
           child: TextField(
             controller: pgIndexCtrl,
             // keyboardType: TextInputType.multiline,
@@ -815,10 +1055,9 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
       ),
-      SizedBox(
-        width: 200,
+      Expanded(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(4),
           child: TextFormField(
             controller: pgSizeCtrl,
             keyboardType: TextInputType.multiline,
@@ -837,24 +1076,25 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
       ),
-      SizedBox(
-        width: 200,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextFormField(
-            controller: totRecCtrl,
-            keyboardType: TextInputType.multiline,
-            textInputAction: TextInputAction.none,
-            readOnly: true,
-            decoration: InputDecoration(labelText: "Total record"),
-            //readOnly: true,
+      Expanded(
+        child: SizedBox(
+          width: 200,
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: TextFormField(
+              controller: totRecCtrl,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.none,
+              readOnly: true,
+              decoration: InputDecoration(labelText: "Total record"),
+              //readOnly: true,
+            ),
           ),
         ),
       ),
-      SizedBox(
-        width: 200,
+      Expanded(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(4),
           child: TextFormField(
             controller: sinceOnCtrl,
             keyboardType: TextInputType.multiline,
@@ -873,10 +1113,9 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
       ),
-      SizedBox(
-        width: 200,
+      Expanded(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(4),
           child: TextFormField(
             controller: sincetimeCtrl,
             keyboardType: TextInputType.multiline,
@@ -895,29 +1134,49 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
       ),
-      CommonDropDown(
-          k: "sinceAgo",
-          w: 200,
-          uniqueValues: sinceAgoDD.values.toList(),
-          ddDataSourceNames: sinceAgoDD.values.toList(),
-          lblTxt: "Since ago",
-          selectedVal: sinceAgoSelection,
-          onChanged: (String? val) {
-            if (val != null) {
-              sinceAgoSelection = val;
-              hasQueryChanged = true;
-              //_constructQueryFromCtrls();
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: CommonDropDown(
+              k: "sinceAgo",
+              w: 150,
+              uniqueValues: sinceAgoDD.values.toList(),
+              ddDataSourceNames: sinceAgoDD.values.toList(),
+              lblTxt: "Since ago",
+              selectedVal: sinceAgoSelection,
+              onChanged: (String? val) {
+                if (val != null) {
+                  sinceAgoSelection = val;
+                  hasQueryChanged = true;
+                  //_constructQueryFromCtrls();
 
-            }
-          }),
+                }
+              }),
+        ),
+      ),
     ]);
   }
 
   List<GridColumn> get _buildGirdColumn {
     var columns = <GridColumn>[];
-    for (var item in result!.fields!) {
-      columns.add(UIHelper.buildGridColumn(label: item, columnName: item));
+    // ignore: curly_braces_in_flow_control_structures
+    // print('curSchemas');
+    // print(curSchemas);
+    // print("result!.fields!"); // print("_buildGirdCol ${result!.fields!}");
+
+    // print(result!.fields!);
+    for (var colName in result!.fields!) {
+      // String? lbl = item;\
+
+      var fieldName = curSchemas[colName];
+      String label = fieldName != null ? fieldName.dn : colName;
+      if (label.isEmpty) {
+        label = colName;
+      }
+      columns.add(UIHelper.buildGridColumn(label: label, columnName: colName));
     }
+
+    print(columns.toList().length);
     return columns.toList();
   }
 
