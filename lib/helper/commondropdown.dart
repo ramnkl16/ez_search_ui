@@ -8,6 +8,7 @@ class CommonDropDown extends StatefulWidget {
   final Map<String, dynamic>? formData;
   final Map<String, FocusNode>? fNodes;
   final double? w;
+  final double? h;
   final String? selectedVal;
   Widget? disableHint;
   CommonDropDown(
@@ -19,6 +20,7 @@ class CommonDropDown extends StatefulWidget {
       this.onChanged,
       required this.ddDataSourceNames,
       this.w,
+      this.h,
       this.formData,
       this.fNodes,
       this.disableHint})
@@ -52,6 +54,7 @@ class _CommonDropDownWidgetState extends State<CommonDropDown> {
       padding: AppValues.formFieldPadding,
       child: SizedBox(
         width: widget.w ?? AppValues.getFormFieldWidth(300),
+        height: 50,
         child: _conditionalDropDown(items),
       ),
     );

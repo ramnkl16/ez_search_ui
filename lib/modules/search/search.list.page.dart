@@ -53,6 +53,8 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController sinceOnCtrl = TextEditingController();
   final TextEditingController totRecCtrl = TextEditingController();
   bool hasQueryChanged = false;
+  bool hassaveQueryChanged = false;
+  bool hassaveasQueryChanged = false;
 
   final Map<String, String> sinceAgoDD = {
     "1": "seconds",
@@ -134,70 +136,99 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: LayoutBuilder(builder: (context, constraints) {
-      pageMaxheight = constraints.maxHeight;
-      print(
-          "Boxconstraint ${constraints.maxHeight}, w= ${constraints.maxWidth}");
-      return Column(
-        children: [
-          Row(children: [
-            _rptDropDownBlocBuilder(),
-            Expanded(child: _buildqueryEditTb()),
-            IconButton(
-                onPressed: () {
-                  _showQueryInfoDialog();
+    Global.isMobileResolution = (MediaQuery.of(context).size.width) < 768;
+    return Scaffold(
+      body: LayoutBuilder(builder: (context, constraints) {
+        pageMaxheight = constraints.maxHeight;
+        print(
+            "Boxconstraint ${constraints.maxHeight}, w= ${constraints.maxWidth}");
+        return Column(
+          children: [
+            Row(children: [
+              _rptDropDownBlocBuilder(),
+              Expanded(child: _buildqueryEditTb()),
+              IconButton(
+                  onPressed: () {
+                    _showQueryInfoDialog();
+                  },
+                  icon: Icon(Icons.info_rounded)),
+              TextButton(
+                  onPressed: () {
+                    if (qTxtCtrl.text.isNotEmpty) {
+                      _execSearchQuery();
+                    } else {
+                      _showSnackBarMessage("Please select a query defintion.");
+                    }
+                  },
+                  child: Text("Run")),
+              BlocBuilder<RptQuerySaveCubit, RptQueryState>(
+                builder: (context, state) {
+                  return Column(
+                    children: [
+                      IconButton(
+                          onPressed: () {
+                            if (hassaveQueryChanged) {
+                              _saveRptQuery();
+                              _showSnackBarMessage("saved successfully");
+                            } else {
+                              _showSnackBarMessage(
+                                  "Please select a query defintion.");
+                            }
+                          },
+                          icon: Icon(Icons.save_outlined),
+                          tooltip: "Save"),
+                      if (state is RptQueryLoading) CircularProgressIndicator(),
+                      if (state is RptQueryFailure) Text(state.errorMsg),
+                    ],
+                  );
                 },
-                icon: Icon(Icons.info_rounded)),
-            TextButton(onPressed: _execSearchQuery, child: Text("Run")),
-            BlocBuilder<RptQuerySaveCubit, RptQueryState>(
-              builder: (context, state) {
+              ),
+              BlocBuilder<RptQuerySaveCubit, RptQueryState>(
+                  builder: (context, state) {
                 return Column(
                   children: [
                     IconButton(
-                        onPressed: _saveRptQuery,
-                        icon: Icon(Icons.save_outlined),
-                        tooltip: "Save"),
-                    if (state is RptQueryLoading) CircularProgressIndicator(),
+                        onPressed: () {
+                          if (qTxtCtrl.text.isNotEmpty) {
+                            _showSaveDialog();
+                          } else {
+                            _showSnackBarMessage(
+                                "Please select a query defintion.");
+                          }
+                        },
+                        icon: Icon(Icons.save_as_outlined),
+                        tooltip: "Save as"),
+                    if (state is BaseLoading) CircularProgressIndicator(),
                     if (state is RptQueryFailure) Text(state.errorMsg),
                   ],
                 );
-              },
-            ),
-            BlocBuilder<RptQuerySaveCubit, RptQueryState>(
-                builder: (context, state) {
-              return Column(
-                children: [
-                  IconButton(
-                      onPressed: () {
-                        _showSaveDialog();
-                      },
-                      icon: Icon(Icons.save_as_outlined),
-                      tooltip: "Save as"),
-                  if (state is BaseLoading) CircularProgressIndicator(),
-                  if (state is RptQueryFailure) Text(state.errorMsg),
-                ],
-              );
-            }),
-            BlocBuilder<RptQuerySaveCubit, RptQueryState>(
-                builder: (context, state) {
-              return Column(
-                children: [
-                  IconButton(
-                      onPressed: () {
-                        exportToCsvDialog();
-                      },
-                      icon: const Icon(Icons.download_rounded),
-                      tooltip: "Csv Download"),
-                  if (state is BaseLoading) CircularProgressIndicator(),
-                  if (state is RptQueryFailure) Text(state.errorMsg),
-                ],
-              );
-            }),
-          ]),
-          _sfGridBuildBlocBuilder(),
-        ],
-      );
-    }));
+              }),
+              BlocBuilder<RptQuerySaveCubit, RptQueryState>(
+                  builder: (context, state) {
+                return Column(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          if (qTxtCtrl.text.isNotEmpty) {
+                            exportToCsvDialog();
+                          } else {
+                            _showSnackBarMessage(
+                                "Please select a query defintion.");
+                          }
+                        },
+                        icon: const Icon(Icons.download_rounded),
+                        tooltip: "Csv Download"),
+                    if (state is BaseLoading) CircularProgressIndicator(),
+                    if (state is RptQueryFailure) Text(state.errorMsg),
+                  ],
+                );
+              }),
+            ]),
+            _sfGridBuildBlocBuilder(),
+          ],
+        );
+      }),
+    );
   }
 
   void exportToCsvDialog() {
@@ -715,7 +746,7 @@ class _SearchPageState extends State<SearchPage> {
               CommonDropDown(
                 k: "rptQuery",
                 uniqueValues: rptList.map((e) => e.id).toList(),
-                lblTxt: "Query defition",
+                lblTxt: "Query definition",
                 onChanged: (String? val) {
                   facetsFilter.clear();
                   if (val != null) {
@@ -897,6 +928,7 @@ class _SearchPageState extends State<SearchPage> {
       var srcItems = FacetDatagridSource(fr[item]!, item, _fgCtrl);
       var sf = Container(
           height: 60 + srcItems.rows.length * 40,
+          width: 295,
           // padding: EdgeInsets.all(4),
           //border: Border(left: BorderSide(color: Colors.black)))
           decoration: BoxDecoration(
@@ -988,9 +1020,6 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Row _buildQueryCtrls() {
-    //if (kDebugMode) {
-    // print("sinceAgoSelection $sinceAgoSelection");
-    //}
     return Row(children: [
       Expanded(
         child: Padding(
