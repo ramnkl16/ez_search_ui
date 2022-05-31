@@ -13,7 +13,7 @@ class RestClient {
   //fetching token directly from shared resource
   static Future<http.Response> exeReq(RequestType method, String endPoint,
       [dynamic body, Map<String, String>? queryParams]) async {
-    print("exereq baseurl=${ApiPaths.baseURL}/$endPoint");
+    print("exereq baseurl=${ApiPaths.baseURL}$endPoint");
     Uri uri = Uri.http(ApiPaths.baseURL, endPoint, queryParams);
 
     var prefs = getIt<StorageService>();

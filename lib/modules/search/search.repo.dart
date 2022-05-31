@@ -7,8 +7,6 @@ import 'package:http/http.dart' as http;
 import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/common/rest_api_client.dart';
 import 'package:ez_search_ui/constants/api_endpoints.dart';
-import 'package:ez_search_ui/constants/api_values.dart';
-import 'package:ez_search_ui/constants/app_constant.dart';
 import 'package:ez_search_ui/constants/app_messages.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/exceptions/custom_exception.model.dart';

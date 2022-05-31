@@ -13,5 +13,6 @@ class ApiPaths {
   static const String rptQuerySave = '/api/widgetmeta';
   static const String getIndexes = '/api/getindexes';
   static const String getIndexFields = '/api/getfields';
+  static const String getIndexSchema = '/api/getschema';
   static const String getSearch = '/api/search';
 }

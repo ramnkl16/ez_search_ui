@@ -9,6 +9,7 @@ import 'package:ez_search_ui/constants/app_messages.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 import 'package:ez_search_ui/exceptions/custom_exception.model.dart';
 import 'package:ez_search_ui/helper/RepoHelper.dart';
+import 'package:ez_search_ui/modules/search/SearchResult.dart';
 import 'package:http/http.dart' as http;
 
 class IndexRepo {
@@ -43,6 +44,35 @@ class IndexRepo {
     }
     //Response code is not successful
     repositoryHelper.handleAPIErrors(response);
+
+    throw Exception(AppMessages.unknownErrMsg);
+  }
+
+  Future<List<IndexSchemaModel>> getSchema(String apiEndPoint,
+      [String? indexName]) async {
+    //req = '{"q":"$req"}';
+    // print("getSchema| $apiEndPoint");
+
+    var qParams = <String, String>{};
+    if (indexName != null) {
+      qParams["indexName"] = indexName;
+    }
+    print("qParams $qParams");
+    http.Response response =
+        await RestClient.exeReq(RequestType.GET, apiEndPoint, null, qParams);
+    print("indexrepo ${response.statusCode} body:${response.body}");
+    List<String> list = <String>[];
+    if (response.statusCode >= 200 && response.statusCode <= 299) {
+      var resList = jsonDecode(response.body) as List<dynamic>;
+      List<IndexSchemaModel> list = <IndexSchemaModel>[];
+      for (var item in resList) {
+        var m = IndexSchemaModel.fromMap(item);
+        list.add(m);
+      }
+      return list;
+    }
+    //Response code is not successful
+    //repositoryHelper.handleAPIErrors(response);
 
     throw Exception(AppMessages.unknownErrMsg);
   }

@@ -10,7 +10,12 @@ import 'package:ez_search_ui/constants/hex_color.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
+String capitalize(String s) {
+  if (s.isEmpty) {
+    return s;
+  }
+  return s[0].toUpperCase() + s.substring(1);
+}
 
 class UIHelper {
   static Widget buildPdfWidget(String label) {
@@ -173,29 +178,18 @@ class UIHelper {
 
       // columnWidthMode: ColumnWidthMode.fill,
       columnName: columnName,
+      minimumWidth: label.length * 12, //todo implement proper way
+
+      //columnWidthMode: ColumnWidthMode.fitByCellValue,
 
       label: Container(
-        //decoration: BoxDecoration(
-        //   color:
-        //       ezThemeData[ThemeNotifier.ezCurThemeName.name]?.primaryColorLight,
-        //   // // boxShadow:  [
-        //   // //   BoxShadow(
-        //   // //      color: ezThemeData[ThemeNotifier.ezCurThemeName.name]?.primaryColorLight.value,
-        //   // //     blurRadius: 8,
-        //   // //     // spreadRadius: UIConstants.shadowSpreadRadius,
-        //   // //     // offset:
-        //   // //     //     Offset(0.0, 1.0), // shadow direction: bottom right
-        //   // //   )
-        //   // ],
-        // ),
-        padding: const EdgeInsets.all(4.0),
-        alignment: Alignment.centerLeft,
-        child: SelectableText(
-          capitalize(label),
-          //overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
+          padding: const EdgeInsets.all(4.0),
+          alignment: Alignment.centerLeft,
+          child: SelectableText(
+            capitalize(label),
+            // overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          )),
     );
   }
 

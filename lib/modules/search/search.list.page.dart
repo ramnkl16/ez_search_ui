@@ -2,6 +2,8 @@
 //Search
 import 'dart:math';
 
+import 'package:ez_search_ui/constants/api_endpoints.dart';
+import 'package:ez_search_ui/modules/indexes/indexes.repo.dart';
 import 'package:ez_search_ui/modules/theme/configtheme.dart';
 import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +41,7 @@ List<RptQueryModel> rptList = <RptQueryModel>[];
 RptQueryModel curRptQuery =
     RptQueryModel(id: '', name: '', division: '', page: '', CustomData: '');
 Map<String, bool> facetsFilter = {};
+Map<String, IndexSchemaModel> curSchemas = {};
 Map<String, DataGridController> facetDGctrls = {};
 
 class _SearchPageState extends State<SearchPage> {
@@ -96,6 +99,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Map<String, String> _parseQuery() {
     //qTxtCtrl.text = curRptQuery.CustomData.trim(); //qTxtCtrl.text.trim();
+    print(qTxtCtrl.text);
     var grps = regEx.allMatches(qTxtCtrl.text.toLowerCase());
     var curIdx = 0;
     var curKey = '';
@@ -579,6 +583,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _constructQueryFromCtrls() {
+    print("starting func  $qParsedMap");
     var sb = StringBuffer();
     if (qParsedMap["sel"] != null) {
       sb.write('select ${qParsedMap["sel"]} ');
@@ -586,6 +591,7 @@ class _SearchPageState extends State<SearchPage> {
     if (qParsedMap["fro"] != null) {
       sb.write('from ${qParsedMap["fro"]} ');
     }
+    print("after where $qParsedMap");
     var wClause = qParsedMap["whe"];
     var commaChar = ',';
     if (wClause == null) {
@@ -601,6 +607,7 @@ class _SearchPageState extends State<SearchPage> {
         commaChar = ',';
       }
     }
+
     if (searchWordCtrl.text.isNotEmpty) {
       if (!wClause.contains(searchWordCtrl.text)) {
         wClause = '$wClause$commaChar ${searchWordCtrl.text}';
@@ -609,7 +616,7 @@ class _SearchPageState extends State<SearchPage> {
     if (wClause.length > 0) {
       sb.write('where $wClause ');
     }
-
+    print("after where $qParsedMap");
     if (sinceOnCtrl.text.isNotEmpty) {
       sb.write(
           "since ${sinceOnCtrl.text}:${sincetimeCtrl.text} $sinceAgoSelection ago ");
@@ -629,19 +636,21 @@ class _SearchPageState extends State<SearchPage> {
 
     qTxtCtrl.text = sb.toString().trim();
     print("Executesearchquery|${qTxtCtrl.text}");
-    // hasQueryChanged = false;
-    // curRptQuery.CustomData = qTxtCtrl.text;
+
     setState(() {});
   }
 
   void _updateCtrlsFromQuery() {
-    totRecCtrl.text = result!.total.toString();
+    print("_updateCtrlsFromQuery");
+    //totRecCtrl.text = result!.total.toString();
     qParsedMap = _parseQuery();
+    print("after query parsed $qParsedMap");
     if (qParsedMap["lim"] != null) {
       var lim = qParsedMap["lim"];
       var splits = lim?.split(",");
       if (splits!.isNotEmpty) pgSizeCtrl.text = splits[1];
     }
+    print("after limt $qParsedMap");
     if (qParsedMap["sin"] != null) {
       List<String> clause = (qParsedMap['sin'] ?? '').split(" ");
       if (clause.length < 3) {
@@ -664,6 +673,7 @@ class _SearchPageState extends State<SearchPage> {
         }
       }
     }
+    print("after end fun $qParsedMap");
     hasQueryChanged = false;
     isQueryModifiedByUser = false;
   }
@@ -716,7 +726,7 @@ class _SearchPageState extends State<SearchPage> {
                 k: "rptQuery",
                 uniqueValues: rptList.map((e) => e.id).toList(),
                 lblTxt: "Query defition",
-                onChanged: (String? val) {
+                onChanged: (String? val) async {
                   facetsFilter.clear();
                   if (val != null) {
                     for (var item in rptList) {
@@ -725,6 +735,17 @@ class _SearchPageState extends State<SearchPage> {
                         qTxtCtrl.text = item.CustomData;
                         searchWordCtrl.text = '';
                         _updateCtrlsFromQuery();
+                        // print(
+                        //     "getSchema|before repo call ${qParsedMap['fro']} $curSchemas ");
+                        IndexRepo repo = IndexRepo();
+                        var list = await repo.getSchema(
+                            ApiPaths.getIndexSchema, qParsedMap['fro']);
+                        curSchemas = {};
+                        for (var i in list) {
+                          curSchemas[i.name] = i;
+                        }
+                        // print(
+                        //     "getSchema|cur schema ${qParsedMap['fro']} $curSchemas ");
                         facetsFilter.clear();
                         fn.requestFocus();
                         BlocProvider.of<SearchCubit>(context).clearResultGrid();
@@ -1138,9 +1159,24 @@ class _SearchPageState extends State<SearchPage> {
 
   List<GridColumn> get _buildGirdColumn {
     var columns = <GridColumn>[];
-    for (var item in result!.fields!) {
-      columns.add(UIHelper.buildGridColumn(label: item, columnName: item));
+    // ignore: curly_braces_in_flow_control_structures
+    // print('curSchemas');
+    // print(curSchemas);
+    // print("result!.fields!"); // print("_buildGirdCol ${result!.fields!}");
+
+    // print(result!.fields!);
+    for (var colName in result!.fields!) {
+      // String? lbl = item;\
+
+      var fieldName = curSchemas[colName];
+      String label = fieldName != null ? fieldName.dn : colName;
+      if (label.isEmpty) {
+        label = colName;
+      }
+      columns.add(UIHelper.buildGridColumn(label: label, columnName: colName));
     }
+
+    print(columns.toList().length);
     return columns.toList();
   }
 
