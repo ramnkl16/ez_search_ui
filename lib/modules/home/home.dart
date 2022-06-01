@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:ez_search_ui/helper/commondropdown.dart';
+import 'package:ez_search_ui/main.dart';
 import 'package:ez_search_ui/modules/theme/configtheme.dart';
 import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:ez_search_ui/services/serviceLocator.dart';
@@ -137,7 +138,6 @@ class _HomePageState extends State<HomePage> {
           return Align(
             alignment: Alignment.topRight,
             child: AlertDialog(
-
                 titlePadding: EdgeInsets.zero,
                 contentPadding: EdgeInsets.zero,
                 //insetPadding: const EdgeInsets.only(bottom: 600, left: 1075),
@@ -286,14 +286,16 @@ class _HomePageState extends State<HomePage> {
         // print('Data Refresh');
         UtilFunc.clearHydratedStorage();
         //UtilFunc.clearSharedStorage();
-        AutoRouter.of(context).popAndPush(
-            LoginRoute(redirectRoute: NavigationPath.homePageBase + "search"));
+        MyApp.of(context).authService.authenticated = false;
         break;
       case 3:
         print('logout');
-        //UtilFunc.clearSharedStorage();
-        AutoRouter.of(context).popAndPush(
-            LoginRoute(redirectRoute: NavigationPath.homePageBase + "search"));
+
+        //UtilFunc.clearSharedStorage();UtilFunc.clearHydratedStorage();
+        UtilFunc.clearHydratedStorage();
+        MyApp.of(context).authService.authenticated = false;
+        // AutoRouter.of(context).popAndPush(
+        //     LoginRoute(redirectRoute: NavigationPath.homePage + "search"));
         break;
     }
   }

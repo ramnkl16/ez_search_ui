@@ -8,26 +8,31 @@ import 'package:ez_search_ui/modules/login/login.page.dart';
 import 'package:ez_search_ui/modules/rptquery/rptquery.base_list.dart';
 import 'package:ez_search_ui/modules/search/search.list.page.dart';
 import 'package:ez_search_ui/modules/user/user.base_list.dart';
+import 'package:ez_search_ui/router/routeguard.dart';
 
 @MaterialAutoRouter(
-  replaceInRouteName: 'Page,Route',
-  routes: <AutoRoute>[
-    RedirectRoute(
-        path: NavigationPath.loginPageBase,
-        redirectTo: NavigationPath.homePageBase),
-    AutoRoute(page: HomePage, initial: true, path: '/', children: [
-      AutoRoute<String>(path: 'search', page: SearchPage, initial: true),
-      AutoRoute(path: 'user', page: UserPage),
-      AutoRoute(path: 'query', page: RptQueryPage),
-      AutoRoute(path: 'indexes', page: IndexesPage),
-      AutoRoute(path: 'fields', page: IndexFieldsPage),
+    //replaceInRouteName: 'Page,Route',
+    routes: <AutoRoute>[
+      AutoRoute(page: LoginPage, name: "LoginRoute", path: "login"),
+      AutoRoute(page: HomePage, name: "HomeRoute", path: "/", guards: [
+        RouteGuard
+      ], children: [
+        AutoRoute(
+            page: SearchPage,
+            initial: true,
+            name: "SearchRoute",
+            path: "search"),
+        AutoRoute(name: "UserRoute", path: 'user', page: UserPage),
+        AutoRoute(name: "QueryRoute", path: 'query', page: RptQueryPage),
+        AutoRoute(name: "IndexesRoute", path: 'indexes', page: IndexesPage),
+        AutoRoute(name: "FieldsRoute", path: 'fields', page: IndexFieldsPage),
 
-      //path: '/report_def', page: RptQueryPage, initial: false),
-    ]),
-    AutoRoute(page: LoginPage, path: NavigationPath.loginPageBase),
+        //path: '/report_def', page: RptQueryPage, initial: false),
+      ])
+    ])
 
-    // AutoRoute(page: LoginPage, path: NavigationPath.loginPageBase),
-    // AutoRoute(page: BookDetailsPage),
-  ],
-)
+// AutoRoute(page: LoginPage, path: NavigationPath.loginPageBase),
+// AutoRoute(page: BookDetailsPage),
+//],
+//)
 class $AppRouter {}

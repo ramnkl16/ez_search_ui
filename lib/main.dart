@@ -13,6 +13,8 @@ import 'package:ez_search_ui/modules/theme/configtheme.dart';
 import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:ez_search_ui/modules/user/user.cubit.dart';
 import 'package:ez_search_ui/router/appRouter.gr.dart';
+import 'package:ez_search_ui/router/routeguard.dart';
+import 'package:ez_search_ui/services/authservice.dart';
 import 'package:ez_search_ui/services/serviceLocator.dart';
 import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/foundation.dart';
@@ -38,9 +40,7 @@ Future<void> main() async {
   //     await SharedPreferences.getInstance());
   setupGetIt();
   var prefs = getIt<StorageService>();
-
   var token = await prefs.getAuthToken();
-  if (token != null) isAuthenticated = true;
   var conn = await prefs.getApiActiveConn();
   if (conn != null) {
     ApiPaths.baseURLName = conn;
@@ -89,61 +89,46 @@ Future<void> main() async {
       BlocProvider<NavigationSearchCubit>(
         create: (context) => NavigationSearchCubit(),
       )
-    ], child: MyApp())),
+    ], child: const MyApp(isAuthenticated: true))),
     storage: storage,
   );
 }
 
-bool isAuthenticated = false;
 // String apiConn = ApiPaths.baseURL.startsWith('127.')
 //     ? 'localhost|${ApiPaths.baseURL}'
 //     : ApiPaths.baseURL;
 
-class MyApp extends StatelessWidget {
-  MyApp({Key? key}) : super(key: key);
+class MyApp extends StatefulWidget {
+  const MyApp({Key? key, required this.isAuthenticated}) : super(key: key);
+  static MyAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<MyAppState>()!;
+  final bool isAuthenticated;
 
-  // This widget is the root of your application.
-  final _appRouter = getIt<AppRouter>();
+  @override
+  State<MyApp> createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
+  final authService = AuthService();
+
+  late final _appRouter = AppRouter(routeGuard: RouteGuard(authService));
 
   @override
   Widget build(BuildContext context) {
     print("myapp build");
-
-    return BlocListener<AuthenticationCubit, AuthenticationState>(
-        listener: (context, state) {
-          print('Auth listnener called');
-          print(isAuthenticated);
+    authService.authenticated = widget.isAuthenticated;
+    return ChangeNotifierProvider(
+      create: (_) => getIt<ThemeNotifier>(),
+      child: Consumer<ThemeNotifier>(
+        builder: (context, ThemeNotifier themeNotifier, child) {
+          return MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            theme: ezThemeData[ThemeNotifier.ezCurThemeName],
+            routerDelegate: _appRouter.delegate(),
+            routeInformationParser: _appRouter.defaultRouteParser(),
+          );
         },
-        child: ChangeNotifierProvider(
-          create: (_) => getIt<ThemeNotifier>(),
-          child: Consumer<ThemeNotifier>(
-            builder: (context, ThemeNotifier themeNotifier, child) {
-              return MaterialApp.router(
-                debugShowCheckedModeBanner: false,
-                theme: ezThemeData[ThemeNotifier.ezCurThemeName],
-
-                //home: HomePage(),
-                // theme: ThemeData(
-                //     // dialogTheme: DialogTheme(),
-                //     appBarTheme: const AppBarTheme(color: Color(0xFF13B9FF)),
-                //     colorScheme: ColorScheme.fromSwatch(
-                //         // accentColor: AppColors.calendarHeaderColor,
-                //         ),
-                //     // textTheme: TextTheme()
-                //     inputDecorationTheme: InputDecorationTheme(
-                //         border: OutlineInputBorder(
-                //             borderRadius: BorderRadius.all(Radius.circular(5))))),
-
-                routerDelegate: _appRouter.delegate(
-                    //initialRoutes: [if (isAuthenticated) HomeRoute() else LoginRoute()]
-                    ),
-                routeInformationParser: _appRouter.defaultRouteParser(),
-                // backButtonDispatcher:
-                //     BeamerBackButtonDispatcher(delegate: routerDelegate),
-                // home: const CounterPage(),
-              );
-            },
-          ),
-        ));
+      ),
+    );
   }
 }

@@ -1,8 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:ez_search_ui/main.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:ez_search_ui/constants/api_values.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 
@@ -17,26 +15,29 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     String? tokenTime = prefs.getString(ApiValues.authTokenTime);
     // String? token = prefs.getString(ApiValues.authTokenHeader);
     // print("print token Time $tokenTime");
+    //var authSer = getIt<AuthService>();
     if (tokenTime != null) {
       DateTime dateTime = DateTime.parse(tokenTime);
       var diff = DateTime.now().difference(dateTime);
       if (diff.inMinutes <= 24 * 60 * 60) {
         // return value;
-        isAuthenticated = true;
+        //authService.authenticated = true;
+        //MyApp.of(context).authService.authenticated = true;
+
         emit(Authenticated(tokenTime));
       }
     }
-    isAuthenticated = false;
+    //authService.authenticated = false;
     emit(UnAuthTokenExpired());
   }
 
   void emitUnAuthTokenExpired() {
-    isAuthenticated = false;
+    //authService.authenticated = false;
     emit(UnAuthTokenExpired());
   }
 
   void emitAuthenticated(String time) {
-    isAuthenticated = true;
+    // authService.authenticated = true;
     emit(Authenticated(time));
   }
 
@@ -48,7 +49,9 @@ class AuthenticationCubit extends Cubit<AuthenticationState> {
     if (json[ApiValues.authTokenTime] != null) {
       // DateTime lastAccessTime = DateTime.parse(json[ApiValues.authTokenTime]);
       // if (DateTime.now().difference(lastAccessTime).inMinutes <= 29) {
-      isAuthenticated = true;
+
+      // authService.authenticated = true;
+      //isAuthenticated = true;
       return Authenticated(ApiValues.authTokenTime);
       // }
     }

@@ -1,35 +1,33 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:ez_search_ui/main.dart';
-import 'package:ez_search_ui/modules/theme/configtheme.dart';
-import 'package:ez_search_ui/modules/theme/themenotifier.dart';
-import 'package:ez_search_ui/services/serviceLocator.dart';
-import 'package:ez_search_ui/services/storageservice/storageservice.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:ez_search_ui/common/global.dart';
 import 'package:ez_search_ui/constants/api_endpoints.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
-
 import 'package:ez_search_ui/helper/UIHelper.dart';
-import 'package:ez_search_ui/helper/utilfunc.dart';
+import 'package:ez_search_ui/main.dart';
 import 'package:ez_search_ui/modules/authentication/authentication.cubit.dart';
 import 'package:ez_search_ui/modules/login/login.request.model.dart';
-import 'package:ez_search_ui/router/appRouter.gr.dart';
 
 import 'login.logic.cubit.dart';
 
-class LoginPage extends StatefulWidget {
-  Function(bool)? onLoginSuccess;
-  String? redirectRoute;
+// class LoginPage extends StatefulWidget {
+//   final Function(bool) onLoginCallback;
+//   //String? redirectRoute;
 
-  LoginPage({Key? key, this.onLoginSuccess, this.redirectRoute})
-      : super(key: key);
-  @override
-  _LoginPageState createState() => _LoginPageState();
-}
+//   const LoginPage({
+//     Key? key,
+//     required this.onLoginCallback,
+//   }) : super(key: key);
+//   @override
+//   _LoginPageState createState() => _LoginPageState();
+// }
 
-class _LoginPageState extends State<LoginPage> {
+//class _LoginPageState extends State<LoginPage> {
+class LoginPage extends StatelessWidget {
+  LoginPage({Key? key, required this.onLoginCallback}) : super(key: key);
+  final Function(bool) onLoginCallback;
   late TextEditingController domainCtrl;
   late TextEditingController emailOrMobCtrl;
   late TextEditingController pwdCtrl;
@@ -54,11 +52,20 @@ class _LoginPageState extends State<LoginPage> {
     // emailOrMobCtrl.text = 'platformadmin@gmail.com';
     // pwdCtrl.text = 'password1';
 
-    super.initState();
+    //super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    domainCtrl = TextEditingController();
+    emailOrMobCtrl = TextEditingController();
+    pwdCtrl = TextEditingController();
+    connCtrl = TextEditingController(
+        text: ApiPaths.baseURLName); //apiConn global variable
+
+    domainCtrl.text = 'platform';
+    emailOrMobCtrl.text = 'admin@gost.com';
+    pwdCtrl.text = 'welcome@123';
     // Global.isMobileResolution = (MediaQuery.of(context).size.width) < 768;
     return MaterialApp(
       home: Scaffold(
@@ -123,26 +130,32 @@ class _LoginPageState extends State<LoginPage> {
                             BlocProvider.of<AuthenticationCubit>(context)
                                 .emitAuthenticated(DateTime.now().toString());
 
-                            if (widget.onLoginSuccess != null) {
-                              widget.onLoginSuccess!(true);
-                            } else {
-                              // var a = AutoRouter.of(context);
-                              //var path = a.topMatch.path;
-                              // a.stackData.first
-                              //var par = AutoRouter.of(context).parent();
-                              // AutoRouter.of(context).pop();
-                              print("widget.redirectRoute");
-                              print(widget.redirectRoute);
-                              if (widget.redirectRoute != null) {
-                                AutoRouter.of(context)
-                                    .replaceNamed(widget.redirectRoute!);
-                              } else {
-                                //SearchRoute();
-                                HomeRoute();
-                              }
-                              // AutoRouter.declarative(routes: routes)
-                              // .replace(CustomBookingTableRoute());
-                            }
+                            // if (widget.onLoginSuccess != null) {
+                            print("if (widget.onLoginSuccess != null) {");
+                            //var authser = getIt<AuthService>();
+                            MyApp.of(context).authService.authenticated = true;
+                            onLoginCallback.call(true);
+                            //} else {
+                            // print(
+                            //     "else (widget.onLoginSuccess != null) { ${widget.redirectRoute!}");
+                            // var a = AutoRouter.of(context);
+                            //var path = a.topMatch.path;
+                            // a.stackData.first
+                            //var par = AutoRouter.of(context).parent();
+                            // AutoRouter.of(context).pop();
+
+                            // print("widget.redirectRoute");
+                            // print(widget.redirectRoute);
+                            // if (widget.redirectRoute != null) {
+                            //   AutoRouter.of(context)
+                            //       .replaceNamed(widget.redirectRoute!);
+                            // } else {
+                            //   //SearchRoute();
+                            //   HomeRoute();
+                            // }
+                            // AutoRouter.declarative(routes: routes)
+                            // .replace(CustomBookingTableRoute());
+                            // }
                           } else if (state is LoginFailure) {
                             ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text(state.errorMsg)));

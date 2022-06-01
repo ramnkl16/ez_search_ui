@@ -79,6 +79,7 @@ class SharedPreferencesStorage extends StorageService {
   @override
   Future<void> setAuthToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
+
     prefs.setString(authTokenHeaderKey, token);
   }
 

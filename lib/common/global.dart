@@ -45,10 +45,10 @@ class Global {
 
     // print("Unauthorized");
     // router.replaceAll([LoginRoute()]);
-    if (path != NavigationPath.loginPageBase) {
-      router.navigate(
-          LoginRoute(redirectRoute: NavigationPath.homePageBase + path));
-    }
+    // if (path != NavigationPath.loginPage) {
+    //   router
+    //       .navigate(LoginRoute(redirectRoute: NavigationPath.homePage + path));
+    // }
   }
 
   static Future<void> loadInitialMeta() async {

@@ -35,9 +35,9 @@ class SearchCubit extends Cubit<SearchState> {
         emit(SearchSuccess(result: search));
       }
     } on CustomException catch (e, s) {
-      if (e is UnauthorizedException) {
-        isAuthenticated = false;
-      }
+      // if (e is UnauthorizedException) {
+      //   isAuthenticated = false;
+      // }
       print("CustomException: $e $s ");
       emit(SearchFailure(errorMsg: e.toString(), errorCode: e.statusCode));
     } on SocketException catch (e, s) {

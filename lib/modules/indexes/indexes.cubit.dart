@@ -35,9 +35,9 @@ class IndexListCubit extends Cubit<IndexState> {
         emit(IndexSuccess(list: list));
       }
     } on CustomException catch (e, s) {
-      if (e is UnauthorizedException) {
-        isAuthenticated = false;
-      }
+      // if (e is UnauthorizedException) {
+      //   isAuthenticated = false;
+      // }
       print("CustomException: $e $s ");
       emit(IndexFailure(errorMsg: e.toString(), errorCode: e.statusCode));
     } on SocketException catch (e, s) {

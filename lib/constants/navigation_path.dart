@@ -1,6 +1,6 @@
 class NavigationPath {
-  static const String loginPageBase = 'login';
-  static const String homePageBase = '/';
+  static const String loginPage = 'login';
+  static const String homePage = '/';
 
   static const String schedulePage = 'reservation/schedule';
   static const String scheduleEditPage = 'scheduleEdit';
