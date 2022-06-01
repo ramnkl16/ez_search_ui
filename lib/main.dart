@@ -34,11 +34,13 @@ Future<void> main() async {
         ? HydratedStorage.webStorageDirectory
         : await getTemporaryDirectory(),
   );
+
   //Registering singleton instance of AppRouter access throughout the project
   // getIt.registerSingleton<AppRouter>(AppRouter());
   // getIt.registerSingleton<SharedPreferences>(
   //     await SharedPreferences.getInstance());
   setupGetIt();
+  getIt.registerSingleton<HydratedStorage>(storage);
   var prefs = getIt<StorageService>();
   var token = await prefs.getAuthToken();
   var conn = await prefs.getApiActiveConn();

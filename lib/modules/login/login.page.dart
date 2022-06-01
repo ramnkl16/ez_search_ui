@@ -1,4 +1,6 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:ez_search_ui/modules/theme/configtheme.dart';
+import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -68,6 +70,7 @@ class LoginPage extends StatelessWidget {
     pwdCtrl.text = 'welcome@123';
     // Global.isMobileResolution = (MediaQuery.of(context).size.width) < 768;
     return MaterialApp(
+      theme: ezThemeData[ThemeNotifier.ezCurThemeName],
       home: Scaffold(
         body: Center(
           child: SingleChildScrollView(
@@ -75,7 +78,7 @@ class LoginPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Card(
-                  color: Colors.white,
+                  // color: Colors.white,
                   elevation: 5,
                   child: Column(
                     children: [
@@ -207,7 +210,7 @@ class LoginPage extends StatelessWidget {
                                 ),
                                 Container(
                                   width: 370,
-                                  color: Colors.amber[50],
+                                  //color: Colors.amber[50],
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(

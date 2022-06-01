@@ -136,9 +136,8 @@ class UIHelper {
         decoration: BoxDecoration(
             shape: BoxShape.rectangle,
             borderRadius: BorderRadius.all(Radius.circular(15)),
-            color: ezThemeData[ThemeNotifier.ezCurThemeName]
-                ?.colorScheme
-                .tertiary),
+            color:
+                ezThemeData[ThemeNotifier.ezCurThemeName]?.colorScheme.primary),
         child: Center(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -148,19 +147,19 @@ class UIHelper {
               if (label == AppConstants.cancelBtn)
                 Icon(
                   Icons.cancel_rounded,
-                  color: Colors.white,
+                  // color: Colors.white,
                 ),
               if (label == "Submit")
                 Icon(
                   Icons.save_rounded,
-                  color: Colors.white,
+                  //color: Colors.white,
                 ),
               SizedBox(
                 width: 10,
               ),
               Text(
                 label,
-                style: TextStyle(color: Colors.white),
+                //style: TextStyle(color: Colors.white),
               ),
             ],
           ),

@@ -293,6 +293,7 @@ class _HomePageState extends State<HomePage> {
 
         //UtilFunc.clearSharedStorage();UtilFunc.clearHydratedStorage();
         UtilFunc.clearHydratedStorage();
+
         MyApp.of(context).authService.authenticated = false;
         // AutoRouter.of(context).popAndPush(
         //     LoginRoute(redirectRoute: NavigationPath.homePage + "search"));
