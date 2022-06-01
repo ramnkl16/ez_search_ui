@@ -1,3 +1,5 @@
+import 'package:ez_search_ui/common/global.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ez_search_ui/constants/app_values.dart';
 
@@ -51,7 +53,8 @@ class _CommonDropDownWidgetState extends State<CommonDropDown> {
     return Padding(
       padding: AppValues.formFieldPadding,
       child: SizedBox(
-        width: widget.w ?? AppValues.getFormFieldWidth(300),
+        width: widget.w ??
+            AppValues.getFormFieldWidth(Global.isDesktop ? 300 : 150),
         child: _conditionalDropDown(items),
       ),
     );
@@ -86,6 +89,7 @@ class _CommonDropDownWidgetState extends State<CommonDropDown> {
         //       ? null
         //       : widget.formData[widget.k],
         isDense: true,
+        isExpanded: true,
         onChanged: (value) {
           if (widget.onChanged != null) {
             widget.onChanged!(value);
@@ -112,6 +116,7 @@ class _CommonDropDownWidgetState extends State<CommonDropDown> {
         //       ? null
         //       : widget.formData[widget.k],
         isDense: true,
+        isExpanded: true,
         onChanged: (value) {
           if (widget.onChanged != null) {
             widget.onChanged!(value);
