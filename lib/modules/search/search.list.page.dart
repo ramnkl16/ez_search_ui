@@ -148,55 +148,68 @@ class _SearchPageState extends State<SearchPage> {
             _rptDropDownBlocBuilder(),
             Expanded(child: _buildqueryEditTb()),
             IconButton(
+                padding: EdgeInsets.zero,
                 onPressed: () {
                   _showQueryInfoDialog();
                 },
                 icon: Icon(Icons.info_rounded)),
             TextButton(onPressed: _execSearchQuery, child: Text("Run")),
-            BlocBuilder<RptQuerySaveCubit, RptQueryState>(
-              builder: (context, state) {
+            SizedBox(
+              width: 30,
+              child: BlocBuilder<RptQuerySaveCubit, RptQueryState>(
+                builder: (context, state) {
+                  return Column(
+                    children: [
+                      IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: _saveRptQuery,
+                          icon: Icon(Icons.save_outlined),
+                          tooltip: "Save"),
+                      if (state is RptQueryLoading) CircularProgressIndicator(),
+                      if (state is RptQueryFailure) Text(state.errorMsg),
+                    ],
+                  );
+                },
+              ),
+            ),
+            SizedBox(
+              width: 30,
+              child: BlocBuilder<RptQuerySaveCubit, RptQueryState>(
+                  builder: (context, state) {
                 return Column(
                   children: [
                     IconButton(
-                        onPressed: _saveRptQuery,
-                        icon: Icon(Icons.save_outlined),
-                        tooltip: "Save"),
-                    if (state is RptQueryLoading) CircularProgressIndicator(),
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          _showSaveDialog();
+                        },
+                        icon: Icon(Icons.save_as_outlined),
+                        tooltip: "Save as"),
+                    if (state is BaseLoading) CircularProgressIndicator(),
                     if (state is RptQueryFailure) Text(state.errorMsg),
                   ],
                 );
-              },
+              }),
             ),
-            BlocBuilder<RptQuerySaveCubit, RptQueryState>(
-                builder: (context, state) {
-              return Column(
-                children: [
-                  IconButton(
-                      onPressed: () {
-                        _showSaveDialog();
-                      },
-                      icon: Icon(Icons.save_as_outlined),
-                      tooltip: "Save as"),
-                  if (state is BaseLoading) CircularProgressIndicator(),
-                  if (state is RptQueryFailure) Text(state.errorMsg),
-                ],
-              );
-            }),
-            BlocBuilder<RptQuerySaveCubit, RptQueryState>(
-                builder: (context, state) {
-              return Column(
-                children: [
-                  IconButton(
-                      onPressed: () {
-                        exportToCsvDialog();
-                      },
-                      icon: const Icon(Icons.download_rounded),
-                      tooltip: "Csv Download"),
-                  if (state is BaseLoading) CircularProgressIndicator(),
-                  if (state is RptQueryFailure) Text(state.errorMsg),
-                ],
-              );
-            }),
+            SizedBox(
+              width: 30,
+              child: BlocBuilder<RptQuerySaveCubit, RptQueryState>(
+                  builder: (context, state) {
+                return Column(
+                  children: [
+                    IconButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          exportToCsvDialog();
+                        },
+                        icon: const Icon(Icons.download_rounded),
+                        tooltip: "Csv Download"),
+                    if (state is BaseLoading) CircularProgressIndicator(),
+                    if (state is RptQueryFailure) Text(state.errorMsg),
+                  ],
+                );
+              }),
+            ),
           ]),
           _sfGridBuildBlocBuilder(),
         ],
