@@ -1169,7 +1169,9 @@ class _SearchPageState extends State<SearchPage> {
       // String? lbl = item;\
 
       var fieldName = curSchemas[colName];
-      String label = fieldName != null ? fieldName.dn : colName;
+      String label = fieldName != null
+          ? (fieldName.dn.isNotEmpty ? "${fieldName.dn}|$colName" : colName)
+          : colName;
       if (label.isEmpty) {
         label = colName;
       }
