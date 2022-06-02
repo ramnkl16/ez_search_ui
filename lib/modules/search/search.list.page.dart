@@ -76,6 +76,7 @@ class _SearchPageState extends State<SearchPage> {
   /// Determine to decide whether the device in landscape or in portrait.
   late bool isLandscapeInMobileView;
   late double pageMaxheight;
+  bool hassaveQueryChanged = false;
 
   @override
   void initState() {
@@ -152,13 +153,29 @@ class _SearchPageState extends State<SearchPage> {
                   _showQueryInfoDialog();
                 },
                 icon: Icon(Icons.info_rounded)),
-            TextButton(onPressed: _execSearchQuery, child: Text("Run")),
+            TextButton(
+                onPressed: () {
+                  if (qTxtCtrl.text.isNotEmpty) {
+                    _execSearchQuery();
+                  } else {
+                    _showSnackBarMessage("Please select a query defintion.");
+                  }
+                },
+                child: Text("Run")),
             BlocBuilder<RptQuerySaveCubit, RptQueryState>(
               builder: (context, state) {
                 return Column(
                   children: [
                     IconButton(
-                        onPressed: _saveRptQuery,
+                        onPressed: () {
+                          if (hassaveQueryChanged) {
+                            _saveRptQuery();
+                            _showSnackBarMessage("saved successfully");
+                          } else {
+                            _showSnackBarMessage(
+                                "Please select a query defintion.");
+                          }
+                        },
                         icon: Icon(Icons.save_outlined),
                         tooltip: "Save"),
                     if (state is RptQueryLoading) CircularProgressIndicator(),
@@ -173,7 +190,12 @@ class _SearchPageState extends State<SearchPage> {
                 children: [
                   IconButton(
                       onPressed: () {
-                        _showSaveDialog();
+                        if (qTxtCtrl.text.isNotEmpty) {
+                          _showSaveDialog();
+                        } else {
+                          _showSnackBarMessage(
+                              "Please select a query defintion.");
+                        }
                       },
                       icon: Icon(Icons.save_as_outlined),
                       tooltip: "Save as"),
@@ -188,7 +210,12 @@ class _SearchPageState extends State<SearchPage> {
                 children: [
                   IconButton(
                       onPressed: () {
-                        exportToCsvDialog();
+                        if (qTxtCtrl.text.isNotEmpty) {
+                          exportToCsvDialog();
+                        } else {
+                          _showSnackBarMessage(
+                              "Please select a query defintion.");
+                        }
                       },
                       icon: const Icon(Icons.download_rounded),
                       tooltip: "Csv Download"),
@@ -917,6 +944,7 @@ class _SearchPageState extends State<SearchPage> {
       var _fgCtrl = DataGridController();
       var srcItems = FacetDatagridSource(fr[item]!, item, _fgCtrl);
       var sf = Container(
+          width: 295,
           height: 60 + srcItems.rows.length * 40,
           // padding: EdgeInsets.all(4),
           //border: Border(left: BorderSide(color: Colors.black)))
