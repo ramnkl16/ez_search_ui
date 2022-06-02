@@ -737,6 +737,7 @@ class _SearchPageState extends State<SearchPage> {
             children: [
               CommonDropDown(
                 k: "rptQuery",
+                w: Global.isDesktop ? 300 : 150,
                 uniqueValues: rptList.map((e) => e.id).toList(),
                 lblTxt: "Query defition",
                 onChanged: (String? val) async {
