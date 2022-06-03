@@ -76,6 +76,7 @@ class _SearchPageState extends State<SearchPage> {
   /// Determine to decide whether the device in landscape or in portrait.
   late bool isLandscapeInMobileView;
   late double pageMaxheight;
+  bool hassaveQueryChanged = false;
 
   @override
   void initState() {
@@ -153,7 +154,15 @@ class _SearchPageState extends State<SearchPage> {
                   _showQueryInfoDialog();
                 },
                 icon: Icon(Icons.info_rounded)),
-            TextButton(onPressed: _execSearchQuery, child: Text("Run")),
+            TextButton(
+                onPressed: () {
+                  if (qTxtCtrl.text.isNotEmpty) {
+                    _execSearchQuery();
+                  } else {
+                    _showSnackBarMessage("Please select a query defintion.");
+                  }
+                },
+                child: Text("Run")),
             SizedBox(
               width: 30,
               child: BlocBuilder<RptQuerySaveCubit, RptQueryState>(
@@ -162,7 +171,15 @@ class _SearchPageState extends State<SearchPage> {
                     children: [
                       IconButton(
                           padding: EdgeInsets.zero,
-                          onPressed: _saveRptQuery,
+                          onPressed: () {
+                            if (hassaveQueryChanged) {
+                              _saveRptQuery();
+                              _showSnackBarMessage("saved successfully");
+                            } else {
+                              _showSnackBarMessage(
+                                  "Please select a query defintion.");
+                            }
+                          },
                           icon: Icon(Icons.save_outlined),
                           tooltip: "Save"),
                       if (state is RptQueryLoading) CircularProgressIndicator(),
@@ -181,7 +198,12 @@ class _SearchPageState extends State<SearchPage> {
                     IconButton(
                         padding: EdgeInsets.zero,
                         onPressed: () {
-                          _showSaveDialog();
+                          if (qTxtCtrl.text.isNotEmpty) {
+                            _showSaveDialog();
+                          } else {
+                            _showSnackBarMessage(
+                                "Please select a query defintion.");
+                          }
                         },
                         icon: Icon(Icons.save_as_outlined),
                         tooltip: "Save as"),
@@ -200,7 +222,12 @@ class _SearchPageState extends State<SearchPage> {
                     IconButton(
                         padding: EdgeInsets.zero,
                         onPressed: () {
-                          exportToCsvDialog();
+                          if (qTxtCtrl.text.isNotEmpty) {
+                            exportToCsvDialog();
+                          } else {
+                            _showSnackBarMessage(
+                                "Please select a query defintion.");
+                          }
                         },
                         icon: const Icon(Icons.download_rounded),
                         tooltip: "Csv Download"),
@@ -816,7 +843,9 @@ class _SearchPageState extends State<SearchPage> {
               Padding(
                 padding: EdgeInsets.all(AppValues.sfGridPadding),
                 child: Container(
-                  height: pageMaxheight - 180,
+                  height: Global.isDesktop
+                      ? pageMaxheight - 180
+                      : pageMaxheight - 200,
                   child: SfDataGridTheme(
                     data: SfDataGridThemeData(
                         headerColor: ezThemeData[ThemeNotifier.ezCurThemeName]
@@ -933,66 +962,65 @@ class _SearchPageState extends State<SearchPage> {
       var _fgCtrl = DataGridController();
       var srcItems = FacetDatagridSource(fr[item]!, item, _fgCtrl);
       var sf = Container(
-          height: 60 + srcItems.rows.length * 40,
-          // padding: EdgeInsets.all(4),
-          //border: Border(left: BorderSide(color: Colors.black)))
-          decoration: BoxDecoration(
-              border: Border(
-                  left: BorderSide(color: Colors.black),
-                  right: BorderSide(color: Colors.black),
-                  top: BorderSide(color: Colors.black),
-                  bottom: BorderSide(color: Colors.black))),
-          child: Padding(
-            padding: AppValues.formFieldPadding,
-            child: SfDataGrid(
-                //allowSorting: true,
+        width: Global.isDesktop ? 300 : 150,
+        height: 60 + srcItems.rows.length * 30,
+        decoration: BoxDecoration(
+            border: Border(
+                left: BorderSide(color: Colors.black),
+                right: BorderSide(color: Colors.black),
+                top: BorderSide(color: Colors.black),
+                bottom: BorderSide(color: Colors.black))),
+        child: SingleChildScrollView(
+          child: SfDataGrid(
+              //allowSorting: true,
 
-                //isScrollbarAlwaysShown: true,
-                columnWidthMode: ColumnWidthMode.auto,
-                source: srcItems,
-                gridLinesVisibility: GridLinesVisibility.both,
-                headerGridLinesVisibility: GridLinesVisibility.both,
-                rowHeight: 40,
-                headerRowHeight: 45,
-                showCheckboxColumn: true,
-                selectionMode: SelectionMode.multiple,
+              //isScrollbarAlwaysShown: true,
+              columnWidthMode: ColumnWidthMode.auto,
+              source: srcItems,
+              gridLinesVisibility: GridLinesVisibility.both,
+              headerGridLinesVisibility: GridLinesVisibility.both,
+              rowHeight: 40,
+              headerRowHeight: 45,
+              showCheckboxColumn: true,
+              selectionMode: SelectionMode.multiple,
 
-                //allowPullToRefresh: true,
-                //navigationMode: GridNavigationMode.cell,
-                controller: _fgCtrl,
-                // onSelectionChanging: (addedRows, removedRows) {
-                // },
-                onSelectionChanging:
-                    (List<DataGridRow> src, List<DataGridRow> dsc) {
-                  // //_fgCtrl.selectedIndex = detail.rowColumnIndex.rowIndex - 1;
-                  // print("oncellTap src ${src.length}|dsc=${dsc.length}");
-                  for (var row in src) {
-                    print(
-                        "oncellTap|src ${row.getCells()[0].columnName}|${row.getCells()[0].value}");
-                    var cell = row.getCells()[0];
-                    var key =
-                        '${cell.columnName}:${(cell.value as String).split("(")[0]}';
-                    if (facetsFilter.keys.contains(key)) {
-                      facetsFilter.remove(key);
-                    } else {
-                      facetsFilter[key] = true;
-                    }
-                  }
-                  for (var row in dsc) {
-                    var cell = row.getCells()[0];
-                    var key =
-                        '${cell.columnName}:${(cell.value as String).split("(")[0]}';
-                    // print("oncellTap|src $key");
+              //allowPullToRefresh: true,
+              //navigationMode: GridNavigationMode.cell,
+              controller: _fgCtrl,
+              // onSelectionChanging: (addedRows, removedRows) {
+              // },
+              onSelectionChanging:
+                  (List<DataGridRow> src, List<DataGridRow> dsc) {
+                // //_fgCtrl.selectedIndex = detail.rowColumnIndex.rowIndex - 1;
+                // print("oncellTap src ${src.length}|dsc=${dsc.length}");
+                for (var row in src) {
+                  print(
+                      "oncellTap|src ${row.getCells()[0].columnName}|${row.getCells()[0].value}");
+                  var cell = row.getCells()[0];
+                  var key =
+                      '${cell.columnName}:${(cell.value as String).split("(")[0]}';
+                  if (facetsFilter.keys.contains(key)) {
                     facetsFilter.remove(key);
+                  } else {
+                    facetsFilter[key] = true;
                   }
-                  hasQueryChanged = true;
-                  _execSearchQuery();
-                  return true;
-                },
-                columns: [
-                  UIHelper.buildGridColumnFacets(label: item, columnName: item)
-                ]),
-          ));
+                }
+                for (var row in dsc) {
+                  var cell = row.getCells()[0];
+                  var key =
+                      '${cell.columnName}:${(cell.value as String).split("(")[0]}';
+                  // print("oncellTap|src $key");
+                  facetsFilter.remove(key);
+                }
+                hasQueryChanged = true;
+                _execSearchQuery();
+                return true;
+              },
+              columns: [
+                UIHelper.buildGridColumnFacets(label: item, columnName: item)
+              ]),
+        ),
+      );
       for (var fItem in facetsFilter.keys) {}
       sfgList.add(sf);
       facetDGctrls[item] = _fgCtrl;
