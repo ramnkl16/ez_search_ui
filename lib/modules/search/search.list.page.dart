@@ -198,6 +198,7 @@ class _SearchPageState extends State<SearchPage> {
               );
             }),
           ]),
+          _buildQueryCtrls(),
           _sfGridBuildBlocBuilder(),
         ],
       );
@@ -642,7 +643,7 @@ class _SearchPageState extends State<SearchPage> {
 
   void _updateCtrlsFromQuery() {
     print("_updateCtrlsFromQuery");
-    //totRecCtrl.text = result!.total.toString();
+    if (result != null) totRecCtrl.text = result!.total.toString();
     qParsedMap = _parseQuery();
     print("after query parsed $qParsedMap");
     if (qParsedMap["lim"] != null) {
@@ -766,12 +767,13 @@ class _SearchPageState extends State<SearchPage> {
 
   int _getMaxPagination() {
     int maxCount = 0;
-    if (result != null) {
-      maxCount =
-          (result!.total / int.parse(pgSizeCtrl.text)).floorToDouble().toInt();
-    }
-    print(
-        "Executesearchquery|result!.total=${result!.total} / ${pgSizeCtrl.text}");
+    //TODO.. refactor while clicking Run button.
+    // if (result != null) {
+    //   maxCount =
+    //       (result!.total / int.parse(pgSizeCtrl.text)).floorToDouble().toInt();
+    // }
+    // print(
+    //     "Executesearchquery|result!.total=${result!.total} / ${pgSizeCtrl.text}");
     return maxCount;
   }
 
@@ -796,7 +798,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
           Expanded(
             child: Column(children: [
-              _buildQueryCtrls(),
+              //_buildQueryCtrls(),
               Padding(
                 padding: EdgeInsets.all(AppValues.sfGridPadding),
                 child: Container(
@@ -1008,7 +1010,7 @@ class _SearchPageState extends State<SearchPage> {
     return Column(children: facetConList);
   }
 
-  Row _buildQueryCtrls() {
+  Widget _buildQueryCtrls() {
     //if (kDebugMode) {
     // print("sinceAgoSelection $sinceAgoSelection");
     //}
