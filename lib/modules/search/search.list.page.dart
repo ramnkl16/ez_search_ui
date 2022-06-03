@@ -843,9 +843,9 @@ class _SearchPageState extends State<SearchPage> {
               Padding(
                 padding: EdgeInsets.all(AppValues.sfGridPadding),
                 child: Container(
-                  height: Global.isDesktop
-                      ? pageMaxheight - 180
-                      : pageMaxheight - 200,
+                  // height: Global.isDesktop
+                  //     ? pageMaxheight - 180
+                  //     : pageMaxheight - 200,
                   child: SfDataGridTheme(
                     data: SfDataGridThemeData(
                         headerColor: ezThemeData[ThemeNotifier.ezCurThemeName]
@@ -963,63 +963,61 @@ class _SearchPageState extends State<SearchPage> {
       var srcItems = FacetDatagridSource(fr[item]!, item, _fgCtrl);
       var sf = Container(
         width: Global.isDesktop ? 300 : 150,
-        height: 60 + srcItems.rows.length * 30,
+        //height: 60 + srcItems.rows.length * 30,
         decoration: BoxDecoration(
             border: Border(
                 left: BorderSide(color: Colors.black),
                 right: BorderSide(color: Colors.black),
                 top: BorderSide(color: Colors.black),
                 bottom: BorderSide(color: Colors.black))),
-        child: SingleChildScrollView(
-          child: SfDataGrid(
-              //allowSorting: true,
+        child: SfDataGrid(
+            //allowSorting: true,
 
-              //isScrollbarAlwaysShown: true,
-              columnWidthMode: ColumnWidthMode.auto,
-              source: srcItems,
-              gridLinesVisibility: GridLinesVisibility.both,
-              headerGridLinesVisibility: GridLinesVisibility.both,
-              rowHeight: 40,
-              headerRowHeight: 45,
-              showCheckboxColumn: true,
-              selectionMode: SelectionMode.multiple,
+            //isScrollbarAlwaysShown: true,
+            columnWidthMode: ColumnWidthMode.auto,
+            source: srcItems,
+            gridLinesVisibility: GridLinesVisibility.both,
+            headerGridLinesVisibility: GridLinesVisibility.both,
+            rowHeight: 40,
+            headerRowHeight: 45,
+            showCheckboxColumn: true,
+            selectionMode: SelectionMode.multiple,
 
-              //allowPullToRefresh: true,
-              //navigationMode: GridNavigationMode.cell,
-              controller: _fgCtrl,
-              // onSelectionChanging: (addedRows, removedRows) {
-              // },
-              onSelectionChanging:
-                  (List<DataGridRow> src, List<DataGridRow> dsc) {
-                // //_fgCtrl.selectedIndex = detail.rowColumnIndex.rowIndex - 1;
-                // print("oncellTap src ${src.length}|dsc=${dsc.length}");
-                for (var row in src) {
-                  print(
-                      "oncellTap|src ${row.getCells()[0].columnName}|${row.getCells()[0].value}");
-                  var cell = row.getCells()[0];
-                  var key =
-                      '${cell.columnName}:${(cell.value as String).split("(")[0]}';
-                  if (facetsFilter.keys.contains(key)) {
-                    facetsFilter.remove(key);
-                  } else {
-                    facetsFilter[key] = true;
-                  }
-                }
-                for (var row in dsc) {
-                  var cell = row.getCells()[0];
-                  var key =
-                      '${cell.columnName}:${(cell.value as String).split("(")[0]}';
-                  // print("oncellTap|src $key");
+            //allowPullToRefresh: true,
+            //navigationMode: GridNavigationMode.cell,
+            controller: _fgCtrl,
+            // onSelectionChanging: (addedRows, removedRows) {
+            // },
+            onSelectionChanging:
+                (List<DataGridRow> src, List<DataGridRow> dsc) {
+              // //_fgCtrl.selectedIndex = detail.rowColumnIndex.rowIndex - 1;
+              // print("oncellTap src ${src.length}|dsc=${dsc.length}");
+              for (var row in src) {
+                print(
+                    "oncellTap|src ${row.getCells()[0].columnName}|${row.getCells()[0].value}");
+                var cell = row.getCells()[0];
+                var key =
+                    '${cell.columnName}:${(cell.value as String).split("(")[0]}';
+                if (facetsFilter.keys.contains(key)) {
                   facetsFilter.remove(key);
+                } else {
+                  facetsFilter[key] = true;
                 }
-                hasQueryChanged = true;
-                _execSearchQuery();
-                return true;
-              },
-              columns: [
-                UIHelper.buildGridColumnFacets(label: item, columnName: item)
-              ]),
-        ),
+              }
+              for (var row in dsc) {
+                var cell = row.getCells()[0];
+                var key =
+                    '${cell.columnName}:${(cell.value as String).split("(")[0]}';
+                // print("oncellTap|src $key");
+                facetsFilter.remove(key);
+              }
+              hasQueryChanged = true;
+              _execSearchQuery();
+              return true;
+            },
+            columns: [
+              UIHelper.buildGridColumnFacets(label: item, columnName: item)
+            ]),
       );
       for (var fItem in facetsFilter.keys) {}
       sfgList.add(sf);
