@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:ez_search_ui/modules/theme/configtheme.dart';
 import 'package:ez_search_ui/modules/theme/themenotifier.dart';
 import 'package:flutter/material.dart';

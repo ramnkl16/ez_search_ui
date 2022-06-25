@@ -43,6 +43,10 @@ Future<void> main() async {
   getIt.registerSingleton<HydratedStorage>(storage);
   var prefs = getIt<StorageService>();
   var token = await prefs.getAuthToken();
+  bool isLoggedIn = false;
+  if (token != null) {
+    isLoggedIn = true;
+  }
   var conn = await prefs.getApiActiveConn();
   if (conn != null) {
     ApiPaths.baseURLName = conn;
@@ -91,7 +95,7 @@ Future<void> main() async {
       BlocProvider<NavigationSearchCubit>(
         create: (context) => NavigationSearchCubit(),
       )
-    ], child: const MyApp(isAuthenticated: true))),
+    ], child: MyApp(isAuthenticated: isLoggedIn))),
     storage: storage,
   );
 }

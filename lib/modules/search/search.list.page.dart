@@ -717,6 +717,7 @@ class _SearchPageState extends State<SearchPage> {
     print("after end fun $qParsedMap");
     hasQueryChanged = false;
     isQueryModifiedByUser = false;
+    //setState(() {});
   }
 
   Widget _sfGridBuildBlocBuilder() {
@@ -742,6 +743,7 @@ class _SearchPageState extends State<SearchPage> {
         } else if (state is SearchSuccess) {
           result = state.props;
           _updateCtrlsFromQuery();
+          setState(() {});
           //print("_updateCtrlsFromQuery|672");
           return _buildSearchGrid();
         } else if (state is SearchEmpty) {
