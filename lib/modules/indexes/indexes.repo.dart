@@ -61,19 +61,19 @@ class IndexRepo {
     http.Response response =
         await RestClient.exeReq(RequestType.GET, apiEndPoint, null, qParams);
     print("indexrepo ${response.statusCode} body:${response.body}");
-    List<String> list = <String>[];
+    List<IndexSchemaModel> list = <IndexSchemaModel>[];
     if (response.statusCode >= 200 && response.statusCode <= 299) {
       var resList = jsonDecode(response.body) as List<dynamic>;
-      List<IndexSchemaModel> list = <IndexSchemaModel>[];
+
       for (var item in resList) {
         var m = IndexSchemaModel.fromMap(item);
         list.add(m);
       }
-      return list;
     }
+    return list;
     //Response code is not successful
     //repositoryHelper.handleAPIErrors(response);
 
-    throw Exception(AppMessages.unknownErrMsg);
+    // throw Exception(AppMessages.unknownErrMsg);
   }
 }

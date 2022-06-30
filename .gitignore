@@ -52,3 +52,4 @@ app.*.map.json
 codegen-app/**.dart
 codegen-app/**.gen
 windows/flutter/generated_plugin_registrant.cc
+testing
