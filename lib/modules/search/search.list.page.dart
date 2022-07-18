@@ -105,7 +105,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Map<String, String> _parseQuery() {
-    //qTxtCtrl.text = curRptQuery.CustomData.trim(); //qTxtCtrl.text.trim();
+    qTxtCtrl.text = curRptQuery.CustomData.trim(); //qTxtCtrl.text.trim();
     print(qTxtCtrl.text);
     var grps = regEx.allMatches(qTxtCtrl.text.toLowerCase());
     var curIdx = 0;
@@ -536,6 +536,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _constructQueryFromCtrls() {
+    qTxtCtrl.text = curRptQuery.CustomData;
     print("starting func  $qParsedMap");
     var sb = StringBuffer();
     if (qParsedMap["sel"] != null) {
@@ -553,9 +554,11 @@ class _SearchPageState extends State<SearchPage> {
     }
 
     var facetKeys = '';
+    print("facetsFilter.keys ${facetsFilter.keys}");
     if (facetsFilter.keys.isNotEmpty) {
       facetKeys = facetsFilter.keys.join(",+");
       if (!wClause.contains(facetKeys)) {
+        print("(!wClause.contains(facetKeys) ${wClause}");
         wClause = '$wClause$commaChar +$facetKeys';
         commaChar = ',';
       }
@@ -995,11 +998,11 @@ class _SearchPageState extends State<SearchPage> {
               hasQueryChanged = true;
               isQueryModifiedByUser = true;
             },
-            onTap: () {
-              if (hasQueryChanged) {
-                _constructQueryFromCtrls();
-              }
-            },
+            // onTap: () {
+            //   if (hasQueryChanged) {
+            //     _constructQueryFromCtrls();
+            //   }
+            // },
             decoration: const InputDecoration(labelText: "Search term"),
             //readOnly: true,
           ),
