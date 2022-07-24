@@ -116,13 +116,19 @@ class MyApp extends StatefulWidget {
 
 class MyAppState extends State<MyApp> {
   final authService = AuthService();
+  late AppRouter _appRouter;
 
-  late final _appRouter = AppRouter(routeGuard: RouteGuard(authService));
+  @override
+  void initState() {
+    // TODO: implement initState
+    print("myapp build");
+    authService.authenticated = widget.isAuthenticated;
+    _appRouter = AppRouter(routeGuard: RouteGuard(authService));
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    print("myapp build");
-    authService.authenticated = widget.isAuthenticated;
     return ChangeNotifierProvider(
       create: (_) => getIt<ThemeNotifier>(),
       child: Consumer<ThemeNotifier>(
