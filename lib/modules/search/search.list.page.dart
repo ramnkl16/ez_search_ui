@@ -61,6 +61,7 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController sinceOnCtrl = TextEditingController();
   //final TextEditingController totRecCtrl = TextEditingController();
   final Notifier<int> totalRecords = Notifier<int>(0);
+  ValueNotifier<String> queryNotifier = ValueNotifier<String>('');
   bool hasQueryChanged = false;
 
   // final Map<String, String> sinceAgoDD = {
@@ -106,6 +107,8 @@ class _SearchPageState extends State<SearchPage> {
 
   Map<String, String> _parseQuery() {
     qTxtCtrl.text = curRptQuery.CustomData.trim(); //qTxtCtrl.text.trim();
+    queryNotifier.value = curRptQuery.CustomData.trim();
+
     print(qTxtCtrl.text);
     var grps = regEx.allMatches(qTxtCtrl.text.toLowerCase());
     var curIdx = 0;
@@ -377,38 +380,43 @@ class _SearchPageState extends State<SearchPage> {
     html.Url.revokeObjectUrl(url);
   }
 
-  RawKeyboardListener _buildqueryEditTb() {
-    return RawKeyboardListener(
-        focusNode: gfn,
-        autofocus: true,
-        onKey: (RawKeyEvent e) {
-          if (e.logicalKey.keyId >= 32 && e.logicalKey.keyId <= 122) {
-            isQueryModifiedByUser = true;
-          }
-          if ((e.isKeyPressed(LogicalKeyboardKey.numpadEnter) ||
-                  e.isKeyPressed(LogicalKeyboardKey.enter)) &&
-              qTxtCtrl.text.isNotEmpty) {
-            // if (isQueryModifiedByUser) {
-            //   curRptQuery.CustomData = qTxtCtrl.text;
-            //   isQueryModifiedByUser = false;
-            // }
+  Widget _buildqueryEditTb() {
+    return ValueListenableBuilder<String>(
+        valueListenable: queryNotifier,
+        builder: (context, value, child) {
+          qTxtCtrl.text = value;
+          return RawKeyboardListener(
+              focusNode: gfn,
+              autofocus: true,
+              onKey: (RawKeyEvent e) {
+                if (e.logicalKey.keyId >= 32 && e.logicalKey.keyId <= 122) {
+                  isQueryModifiedByUser = true;
+                }
+                if ((e.isKeyPressed(LogicalKeyboardKey.numpadEnter) ||
+                        e.isKeyPressed(LogicalKeyboardKey.enter)) &&
+                    qTxtCtrl.text.isNotEmpty) {
+                  // if (isQueryModifiedByUser) {
+                  //   curRptQuery.CustomData = qTxtCtrl.text;
+                  //   isQueryModifiedByUser = false;
+                  // }
 
-            //isQueryModifiedByUser = false;
-            //_execSearchQuery();
-            //print("keypressed ${e.data.logicalKey}  ${e.character}");
-          }
-        },
-        child: TextField(
-          controller: qTxtCtrl,
-          keyboardType: TextInputType.multiline,
-          textInputAction: TextInputAction.none,
+                  //isQueryModifiedByUser = false;
+                  //_execSearchQuery();
+                  //print("keypressed ${e.data.logicalKey}  ${e.character}");
+                }
+              },
+              child: TextField(
+                controller: qTxtCtrl,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.none,
 
-          focusNode: fn,
+                focusNode: fn,
 
-          //one
+                //one
 
-          //readOnly: true,
-        ));
+                //readOnly: true,
+              ));
+        });
   }
 
   void _execSearchQuery() {
@@ -591,6 +599,7 @@ class _SearchPageState extends State<SearchPage> {
     // print("finalquery${sb.toString().trim()}");
 
     qTxtCtrl.text = sb.toString().trim();
+    queryNotifier.value = qTxtCtrl.text;
     print("Executesearchquery|${qTxtCtrl.text}");
 
     // setState(() {});
