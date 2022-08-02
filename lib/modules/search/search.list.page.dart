@@ -106,7 +106,10 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Map<String, String> _parseQuery() {
-    qTxtCtrl.text = curRptQuery.CustomData.trim(); //qTxtCtrl.text.trim();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      qTxtCtrl.text = curRptQuery.CustomData.trim();
+    });
+    //qTxtCtrl.text.trim();
     queryNotifier.value = curRptQuery.CustomData.trim();
 
     print(qTxtCtrl.text);
@@ -381,6 +384,37 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildqueryEditTb() {
+    return RawKeyboardListener(
+        focusNode: gfn,
+        autofocus: true,
+        onKey: (RawKeyEvent e) {
+          if (e.logicalKey.keyId >= 32 && e.logicalKey.keyId <= 122) {
+            isQueryModifiedByUser = true;
+          }
+          if ((e.isKeyPressed(LogicalKeyboardKey.numpadEnter) ||
+                  e.isKeyPressed(LogicalKeyboardKey.enter)) &&
+              qTxtCtrl.text.isNotEmpty) {
+            // if (isQueryModifiedByUser) {
+            //   curRptQuery.CustomData = qTxtCtrl.text;
+            //   isQueryModifiedByUser = false;
+            // }
+
+            //isQueryModifiedByUser = false;
+            //_execSearchQuery();
+            //print("keypressed ${e.data.logicalKey}  ${e.character}");
+          }
+        },
+        child: TextField(
+          controller: qTxtCtrl,
+          keyboardType: TextInputType.multiline,
+          textInputAction: TextInputAction.none,
+
+          focusNode: fn,
+
+          //one
+
+          //readOnly: true,
+        ));
     return ValueListenableBuilder<String>(
         valueListenable: queryNotifier,
         builder: (context, value, child) {
@@ -426,6 +460,7 @@ class _SearchPageState extends State<SearchPage> {
     //   isQueryModifiedByUser = false;
     // }
     //if (hasQueryChanged)
+
     _constructQueryFromCtrls();
 
     print("Executesearchquery|#369 ${qTxtCtrl.text}");
@@ -544,7 +579,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _constructQueryFromCtrls() {
-    qTxtCtrl.text = curRptQuery.CustomData;
+    // qTxtCtrl.text = curRptQuery.CustomData;
     print("starting func  $qParsedMap");
     var sb = StringBuffer();
     if (qParsedMap["sel"] != null) {
@@ -699,7 +734,7 @@ class _SearchPageState extends State<SearchPage> {
             children: [
               CommonDropDown(
                 k: "rptQuery",
-                w: Global.isDesktop ? 300 : 150,
+                w: Global.isDesktop ? 400 : 150,
                 uniqueValues: rptList.map((e) => e.id).toList(),
                 lblTxt: "Query defition",
                 onChanged: (String? val) async {
@@ -784,9 +819,9 @@ class _SearchPageState extends State<SearchPage> {
               Padding(
                 padding: EdgeInsets.all(AppValues.sfGridPadding),
                 child: Container(
-                  // height: Global.isDesktop
-                  //     ? pageMaxheight - 180
-                  //     : pageMaxheight - 200,
+                  height: Global.isDesktop
+                      ? pageMaxheight - 180
+                      : pageMaxheight - 200,
                   child: SfDataGridTheme(
                     data: SfDataGridThemeData(
                         headerColor: ezThemeData[ThemeNotifier.ezCurThemeName]
@@ -903,7 +938,7 @@ class _SearchPageState extends State<SearchPage> {
       var _fgCtrl = DataGridController();
       var srcItems = FacetDatagridSource(fr[item]!, item, _fgCtrl);
       var sf = Container(
-        width: Global.isDesktop ? 300 : 150,
+        width: Global.isDesktop ? 400 : 200,
         //height: 60 + srcItems.rows.length * 30,
         decoration: BoxDecoration(
             border: Border(
