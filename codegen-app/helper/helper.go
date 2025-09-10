@@ -18,7 +18,7 @@ var (
 	Wd                    string
 	Entity                Module
 	FlagDbUser            = flag.String("db_user", "root", "user name")
-	FlagPassword          = flag.String("db_password", "Kish123", "db password")
+	FlagPassword          = flag.String("db_password", "", "db password")
 	FlagDbName            = flag.String("db_name", "booknplay", "database name")
 	FlagDbHost            = flag.String("db_host", "localhost", "host name  localhost")
 	FlagDbPort            = flag.Int("db_port", 3306, "db port")
